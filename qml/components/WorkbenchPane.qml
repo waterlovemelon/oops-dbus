@@ -5,14 +5,39 @@ import QtQuick.Layouts 1.3
 Rectangle {
     id: root
 
+    property var theme
     property var node: ({})
-    property var methodArguments: []
+    property var argumentModel
+    property string executionStatus: "idle"
+    property string executionText: ""
+    property string executionError: ""
 
     signal backRequested()
     signal copyRequested(string type)
     signal executed()
 
-    color: "#f8f7f4"
+    function statusFill() {
+        if (root.executionStatus === "success") return theme.successSurface;
+        if (root.executionStatus === "error") return theme.dangerSurface;
+        if (root.executionStatus === "running") return theme.warningSurface;
+        return theme.panelMutedBackground;
+    }
+
+    function statusStroke() {
+        if (root.executionStatus === "success") return theme.success;
+        if (root.executionStatus === "error") return theme.danger;
+        if (root.executionStatus === "running") return theme.warning;
+        return theme.borderStrong;
+    }
+
+    function statusTextColor() {
+        if (root.executionStatus === "success") return theme.success;
+        if (root.executionStatus === "error") return theme.danger;
+        if (root.executionStatus === "running") return theme.warning;
+        return theme.textSecondary;
+    }
+
+    color: theme.appBackground
 
     ColumnLayout {
         anchors.fill: parent
@@ -20,36 +45,38 @@ Rectangle {
 
         Rectangle {
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
-            color: "#ffffff"
+            Layout.preferredHeight: 110
+            color: theme.panelBackground
 
-            RowLayout {
+            ColumnLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
-                spacing: 12
+                anchors.leftMargin: 28
+                anchors.rightMargin: 28
+                anchors.topMargin: 18
+                anchors.bottomMargin: 16
+                spacing: 6
 
                 Rectangle {
                     height: 30
-                    width: 68
-                    radius: 8
-                    color: backMouse.containsMouse ? "#f1f0ec" : "transparent"
+                    width: 72
+                    radius: theme.controlRadius
+                    color: backMouse.containsMouse ? theme.hoverBackground : "transparent"
 
                     Row {
                         anchors.centerIn: parent
                         spacing: 4
 
                         Label {
-                            text: "\u25C0"
+                            text: "◀"
                             font.pixelSize: 9
-                            color: "#6b6560"
+                            color: theme.textSecondary
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Label {
                             text: "返回"
-                            font.pixelSize: 13
-                            color: "#6b6560"
+                            font.pixelSize: theme.bodyFont
+                            color: theme.textSecondary
                         }
                     }
 
@@ -62,34 +89,26 @@ Rectangle {
                     }
                 }
 
-                Rectangle {
-                    width: 1
-                    height: 20
-                    color: "#d4d1ca"
-                }
-
                 Label {
-                    text: root.node.interfaceName || "org.freedesktop.Notifications"
-                    font.pixelSize: 13
+                    text: root.node.interfaceName || ""
+                    font.pixelSize: theme.bodyFont
                     font.family: "monospace"
-                    color: "#1a1816"
+                    color: theme.textMuted
                 }
 
                 Label {
-                    text: "\u00B7"
-                    font.pixelSize: 14
-                    color: "#9c9690"
+                    text: root.node.label || root.node.name || "Method"
+                    font.pixelSize: 22
+                    font.weight: Font.DemiBold
+                    color: theme.textPrimary
                 }
 
                 Label {
-                    text: root.node.label || "Notify"
-                    font.pixelSize: 13
-                    font.family: "monospace"
-                    font.weight: Font.Medium
-                    color: "#1a1816"
+                    text: root.node.path ? ("Object path: " + root.node.path) : (root.node.signature ? ("Input signature: " + root.node.signature) : "执行 D-Bus method 并查看真实返回结果。")
+                    font.pixelSize: theme.bodyFont
+                    color: theme.textSecondary
+                    wrapMode: Text.Wrap
                 }
-
-                Item { Layout.fillWidth: true }
             }
 
             Rectangle {
@@ -97,7 +116,7 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: 1
-                color: "#e8e6e1"
+                color: theme.divider
             }
         }
 
@@ -115,12 +134,9 @@ Rectangle {
                 topPadding: 24
                 spacing: 20
 
-                Rectangle {
+                SurfaceCard {
+                    theme: root.theme
                     width: parent.width - parent.leftPadding - parent.rightPadding
-                    radius: 14
-                    color: "#ffffff"
-                    border.width: 1
-                    border.color: "#e8e6e1"
                     height: argsContent.height
 
                     Column {
@@ -135,19 +151,19 @@ Rectangle {
                             rightPadding: 20
 
                             Label {
-                                text: "参数"
-                                font.pixelSize: 14
+                                text: "Arguments"
+                                font.pixelSize: theme.sectionFont
                                 font.weight: Font.DemiBold
-                                color: "#1a1816"
+                                color: theme.textPrimary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
-                            Item { width: parent.width - 120; height: 1 }
+                            Item { width: parent.width - 160; height: 1 }
 
                             Label {
-                                text: root.methodArguments.length + " arguments"
-                                font.pixelSize: 11
-                                color: "#9c9690"
+                                text: (root.argumentModel ? root.argumentModel.rowCount() : 0) + " arguments"
+                                font.pixelSize: theme.smallFont
+                                color: theme.textMuted
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                         }
@@ -155,17 +171,28 @@ Rectangle {
                         Rectangle {
                             width: parent.width
                             height: 1
-                            color: "#e8e6e1"
+                            color: theme.divider
+                        }
+
+                        Label {
+                            visible: !root.argumentModel || root.argumentModel.rowCount() === 0
+                            width: parent.width
+                            leftPadding: 20
+                            rightPadding: 20
+                            topPadding: 18
+                            bottomPadding: 18
+                            text: "这个 method 没有输入参数，可以直接执行。"
+                            font.pixelSize: theme.bodyFont
+                            color: theme.textSecondary
                         }
 
                         Repeater {
-                            model: root.methodArguments
+                            model: root.argumentModel
 
                             delegate: Rectangle {
-                                property var entry: model.modelData
                                 width: parent.width
-                                height: 52
-                                color: argHover.containsMouse ? "#f8f7f4" : "transparent"
+                                height: 56
+                                color: argHover.containsMouse ? theme.hoverBackground : "transparent"
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -174,44 +201,45 @@ Rectangle {
                                     spacing: 16
 
                                     Column {
-                                        Layout.preferredWidth: 160
+                                        Layout.preferredWidth: 170
                                         spacing: 2
                                         anchors.verticalCenter: parent.verticalCenter
 
                                         Label {
-                                            text: entry.name
-                                            font.pixelSize: 13
+                                            text: model.name
+                                            font.pixelSize: theme.bodyFont
                                             font.weight: Font.Medium
-                                            color: "#1a1816"
+                                            color: theme.textPrimary
                                         }
 
                                         Label {
-                                            text: entry.signature
+                                            text: model.signature
                                             font.pixelSize: 11
                                             font.family: "monospace"
-                                            color: "#c45d3e"
+                                            color: theme.accent
                                         }
                                     }
 
                                     Rectangle {
                                         Layout.fillWidth: true
-                                        height: 36
-                                        radius: 10
-                                        color: "#f1f0ec"
+                                        height: theme.controlHeight
+                                        radius: theme.controlRadius
+                                        color: theme.inputBackground
                                         border.width: 1
-                                        border.color: argInput.activeFocus ? "#c45d3e" : "#d4d1ca"
+                                        border.color: argInput.activeFocus ? theme.focusRing : theme.borderStrong
                                         anchors.verticalCenter: parent.verticalCenter
 
                                         TextField {
                                             id: argInput
                                             anchors.fill: parent
                                             anchors.margins: 1
-                                            text: entry.value
-                                            font.pixelSize: 13
+                                            text: model.value
+                                            font.pixelSize: theme.bodyFont
                                             font.family: "monospace"
-                                            color: "#1a1816"
+                                            color: theme.textPrimary
                                             selectByMouse: true
                                             background: Item {}
+                                            onTextChanged: root.argumentModel.setArgumentValue(index, text)
                                         }
                                     }
                                 }
@@ -228,21 +256,21 @@ Rectangle {
                         Rectangle {
                             width: parent.width
                             height: 1
-                            color: "#e8e6e1"
+                            color: theme.divider
                         }
 
                         Row {
                             width: parent.width
-                            height: 62
+                            height: 64
                             leftPadding: 20
                             rightPadding: 20
                             spacing: 8
 
                             Rectangle {
-                                height: 34
+                                height: theme.controlHeight
                                 width: execLbl.implicitWidth + 32
-                                radius: 8
-                                color: execHover.containsMouse ? "#a84e34" : "#c45d3e"
+                                radius: theme.controlRadius
+                                color: execHover.containsMouse ? theme.accentHover : theme.accent
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Row {
@@ -250,17 +278,17 @@ Rectangle {
                                     spacing: 6
 
                                     Label {
-                                        text: "\u25B6"
+                                        text: "▶"
                                         font.pixelSize: 11
-                                        color: "#ffffff"
+                                        color: theme.textOnAccent
                                     }
 
                                     Label {
                                         id: execLbl
-                                        text: "执行"
-                                        font.pixelSize: 13
+                                        text: "Invoke"
+                                        font.pixelSize: theme.bodyFont
                                         font.weight: Font.Medium
-                                        color: "#ffffff"
+                                        color: theme.textOnAccent
                                     }
                                 }
 
@@ -274,23 +302,23 @@ Rectangle {
                             }
 
                             Repeater {
-                                model: ["复制 gdbus 命令", "复制 busctl 命令", "复制 Python 代码"]
+                                model: ["Copy gdbus command", "Copy busctl command", "Copy Python code"]
 
                                 delegate: Rectangle {
-                                    height: 34
+                                    height: theme.controlHeight
                                     width: cpLbl.implicitWidth + 24
-                                    radius: 8
-                                    color: cpHover.containsMouse ? "#f1f0ec" : "transparent"
+                                    radius: theme.controlRadius
+                                    color: cpHover.containsMouse ? theme.hoverBackground : theme.panelBackground
                                     border.width: 1
-                                    border.color: "#d4d1ca"
+                                    border.color: theme.borderStrong
                                     anchors.verticalCenter: parent.verticalCenter
 
                                     Label {
                                         id: cpLbl
                                         anchors.centerIn: parent
                                         text: modelData
-                                        font.pixelSize: 12
-                                        color: "#1a1816"
+                                        font.pixelSize: theme.smallFont
+                                        color: theme.textPrimary
                                     }
 
                                     MouseArea {
@@ -299,7 +327,7 @@ Rectangle {
                                         hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            var t = modelData.replace("复制 ", "").replace(" 命令", "").replace(" 代码", "");
+                                            var t = modelData.replace("Copy ", "").replace(" command", "").replace(" code", "");
                                             root.copyRequested(t);
                                         }
                                     }
@@ -309,12 +337,9 @@ Rectangle {
                     }
                 }
 
-                Rectangle {
+                SurfaceCard {
+                    theme: root.theme
                     width: parent.width - parent.leftPadding - parent.rightPadding
-                    radius: 14
-                    color: "#ffffff"
-                    border.width: 1
-                    border.color: "#e8e6e1"
                     height: resultContent.height
 
                     Column {
@@ -327,33 +352,40 @@ Rectangle {
                             height: 48
                             leftPadding: 20
                             rightPadding: 20
+                            spacing: 8
 
                             Label {
-                                text: "返回结果"
-                                font.pixelSize: 14
+                                text: "Result"
+                                font.pixelSize: theme.sectionFont
                                 font.weight: Font.DemiBold
-                                color: "#1a1816"
+                                color: theme.textPrimary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
 
-                            Item { width: parent.width - 140; height: 1 }
+                            Item { width: parent.width - resultStatusBadge.width - 148; height: 1 }
 
-                            Row {
-                                spacing: 4
+                            Rectangle {
+                                id: resultStatusBadge
                                 anchors.verticalCenter: parent.verticalCenter
-
-                                Rectangle {
-                                    width: 6
-                                    height: 6
-                                    radius: 3
-                                    color: "#3a9a5c"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
+                                radius: theme.controlRadius
+                                height: 24
+                                width: resultStatusLabel.implicitWidth + 18
+                                color: root.statusFill()
+                                border.width: 1
+                                border.color: root.statusStroke()
 
                                 Label {
-                                    text: "success"
+                                    id: resultStatusLabel
+                                    anchors.centerIn: parent
+                                    text: {
+                                        if (root.executionStatus === "success") return "success";
+                                        if (root.executionStatus === "error") return "error";
+                                        if (root.executionStatus === "running") return "running";
+                                        return "idle";
+                                    }
                                     font.pixelSize: 11
-                                    color: "#3a9a5c"
+                                    font.weight: Font.Medium
+                                    color: root.statusTextColor()
                                 }
                             }
                         }
@@ -361,26 +393,39 @@ Rectangle {
                         Rectangle {
                             width: parent.width
                             height: 1
-                            color: "#e8e6e1"
+                            color: theme.divider
                         }
 
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: parent.width - 40
                             height: resultTxt.implicitHeight + 24
-                            radius: 10
-                            color: "#f1f0ec"
+                            radius: theme.panelRadius
+                            color: root.executionStatus === "error" ? theme.dangerSurface : theme.codeBackground
                             anchors.topMargin: 16
                             anchors.bottomMargin: 16
+                            border.width: 1
+                            border.color: root.executionStatus === "error" ? theme.danger : theme.borderSubtle
 
                             Text {
                                 id: resultTxt
                                 anchors.fill: parent
                                 anchors.margins: 12
-                                text: '{\n  "id": 42,\n  "capabilities": ["actions", "body-markup"]\n}'
+                                text: {
+                                    if (root.executionStatus === "running") {
+                                        return "正在执行 D-Bus method...";
+                                    }
+                                    if (root.executionStatus === "error") {
+                                        return root.executionError || "调用失败";
+                                    }
+                                    if (root.executionStatus === "success") {
+                                        return root.executionText || "(empty result)";
+                                    }
+                                    return "执行后会在这里显示真实返回值或错误信息。";
+                                }
                                 font.family: "monospace"
-                                font.pixelSize: 13
-                                color: "#1a1816"
+                                font.pixelSize: theme.bodyFont
+                                color: root.executionStatus === "error" ? theme.danger : theme.textPrimary
                                 wrapMode: Text.Wrap
                             }
                         }
