@@ -102,13 +102,13 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         {/* Arguments Section */}
-        {member.signature && (
+        {member.inputArgs.length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-[#c5c7ce] uppercase tracking-wider mb-4">
               Arguments
             </h3>
             <ArgumentForm
-              signature={member.signature}
+              args={member.inputArgs}
               values={args}
               onChange={setArgs}
               disabled={isInvoking}

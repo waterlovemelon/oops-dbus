@@ -1,16 +1,26 @@
 import { useEffect, useMemo, useState } from 'react'
 import { AlertCircle } from 'lucide-react'
+import type { DbusArgumentInfo } from '../../types/electron-api'
 import { parseDbusSignature } from '../../lib/dbusSignature'
+import { formatDbusTypeLabel } from '../../lib/memberLabel'
 
 interface ArgumentFormProps {
-  signature: string
+  args: DbusArgumentInfo[]
   values: any[]
   onChange: (values: any[]) => void
   disabled?: boolean
 }
 
-export function ArgumentForm({ signature, values, onChange, disabled }: ArgumentFormProps) {
-  const parsedArgs = useMemo(() => parseDbusSignature(signature), [signature])
+export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormProps) {
+  const parsedArgs = useMemo(
+    () =>
+      args.map((arg) => ({
+        ...parseDbusSignature(arg.type)[0],
+        name: arg.name,
+        rawType: arg.type,
+      })),
+    [args]
+  )
   const [complexInputTexts, setComplexInputTexts] = useState<Record<number, string>>({})
   const [validationErrors, setValidationErrors] = useState<Record<number, string>>({})
 
@@ -78,9 +88,13 @@ export function ArgumentForm({ signature, values, onChange, disabled }: Argument
           }}
         >
           <div className="flex items-start gap-4">
-            <div className="w-24 flex-shrink-0">
-              <div className="font-mono text-sm font-semibold text-[#00d4ff]">Arg {index}</div>
-              <div className="mt-1 font-mono text-xs text-[#6b7280]">{arg.type}</div>
+            <div className="w-40 flex-shrink-0">
+              <div className="font-mono text-sm font-semibold text-[#00d4ff]">
+                {arg.name || `Argument ${index + 1}`}
+              </div>
+              <div className="mt-1 font-mono text-xs text-[#6b7280]">
+                {formatDbusTypeLabel(arg.rawType)}
+              </div>
             </div>
 
             <div className="flex-1">
