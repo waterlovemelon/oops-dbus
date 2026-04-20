@@ -1,5 +1,11 @@
 // D-Bus data structures (matching Qt backend)
 
+export interface DbusArgumentInfo {
+  name: string
+  type: string
+  direction: 'in' | 'out'
+}
+
 export interface DbusMemberInfo {
   id: string
   name: string
@@ -10,6 +16,8 @@ export interface DbusMemberInfo {
   signature: string
   returnType: string
   annotation: string
+  inputArgs: DbusArgumentInfo[]
+  outputArgs: DbusArgumentInfo[]
 }
 
 export interface DbusInterfaceInfo {

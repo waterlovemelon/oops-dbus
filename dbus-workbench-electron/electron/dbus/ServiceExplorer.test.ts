@@ -17,6 +17,33 @@ async function captureConsoleError(run: () => Promise<void>) {
   }
 }
 
+test('introspectPath preserves method input and output argument metadata', async () => {
+  const explorer = new ServiceExplorer() as any
+
+  explorer.getIntrospectionXML = async () => `
+    <node>
+      <interface name="com.example.Interface">
+        <method name="SetDefaultEntry">
+          <arg name="id" direction="in" type="s"/>
+          <arg name="flags" direction="in" type="u"/>
+          <arg name="success" direction="out" type="b"/>
+        </method>
+      </interface>
+    </node>
+  `
+
+  const interfaces = await explorer.introspectPath({}, 'com.example.Service', '/com/example/Object')
+  const method = interfaces[0]?.methods[0]
+
+  assert.deepEqual(method?.inputArgs, [
+    { name: 'id', type: 's', direction: 'in' },
+    { name: 'flags', type: 'u', direction: 'in' },
+  ])
+  assert.deepEqual(method?.outputArgs, [
+    { name: 'success', type: 'b', direction: 'out' },
+  ])
+})
+
 test('explorePaths skips child nodes that cannot be introspected', async () => {
   const explorer = new ServiceExplorer() as any
 
