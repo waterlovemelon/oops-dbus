@@ -16,6 +16,7 @@ public:
         SenderRole,
         PayloadRole
     };
+    Q_ENUM(Roles)
 
     explicit SignalEventModel(QObject *parent = nullptr);
 

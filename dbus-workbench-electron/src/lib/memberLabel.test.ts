@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { formatMemberLabel } from './memberLabel.ts'
-import type { DbusArgumentInfo, DbusMemberInfo } from '../types/electron-api'
+import type { DbusMemberInfo } from '../types/electron-api'
 
 function createMember(overrides: Partial<DbusMemberInfo>): DbusMemberInfo {
   return {

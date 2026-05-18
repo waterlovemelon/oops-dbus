@@ -18,6 +18,7 @@ public:
         CountRole,
         BusTypeRole
     };
+    Q_ENUM(Roles)
 
     explicit ServiceModel(QObject *parent = nullptr);
 

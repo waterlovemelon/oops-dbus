@@ -16,6 +16,7 @@ public:
         TypeRole,
         ValueRole
     };
+    Q_ENUM(Roles)
 
     explicit ArgumentModel(QObject *parent = nullptr);
 

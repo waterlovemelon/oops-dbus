@@ -21,6 +21,7 @@ public:
         ReturnTypeRole,
         AnnotationRole
     };
+    Q_ENUM(Roles)
 
     explicit MemberModel(QObject *parent = nullptr);
 
