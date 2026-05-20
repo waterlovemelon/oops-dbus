@@ -4,7 +4,7 @@ import { formatDbusTypeLabel } from '../../lib/memberLabel'
 import { ArgumentForm } from './ArgumentForm'
 import { ResultView } from './ResultView'
 import { useMethodInvoker } from '../../hooks/useMethodInvoker'
-import { ChevronLeft, Play, RotateCcw } from 'lucide-react'
+import { ChevronLeft, Play, RotateCcw, Copy, Check } from 'lucide-react'
 
 interface MethodPaneProps {
   member: DbusMemberInfo
@@ -27,8 +27,8 @@ function renderArgumentSummary(args: DbusArgumentInfo[]): string {
 export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
   const [args, setArgs] = useState<any[]>([])
   const { invoke, result, isInvoking, clearResult } = useMethodInvoker()
+  const [copied, setCopied] = useState(false)
 
-  // Initialize arguments array based on inputArgs
   useEffect(() => {
     setArgs(new Array(member.inputArgs.length).fill(null))
   }, [member.inputArgs])
@@ -49,6 +49,26 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
     clearResult()
   }
 
+  const buildDbusSendCmd = () => {
+    const parts = [
+      'dbus-send',
+      `--${busType}`,
+      `--dest=${member.serviceName}`,
+      `--type=method_call`,
+      `--print-reply`,
+      member.path,
+      `${member.interfaceName}.${member.name}`,
+    ]
+    return parts.join(' ')
+  }
+
+  const handleCopyCommand = async () => {
+    const cmd = buildDbusSendCmd()
+    await navigator.clipboard.writeText(cmd)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <div className="h-full flex flex-col bg-[#0a0a0f] text-[#e5e7eb]">
       {/* Header */}
@@ -62,19 +82,12 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
             <ChevronLeft className="w-5 h-5 text-[#8b8d94] group-hover:text-[#e5e7eb] transition-colors" />
           </button>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-[#00d4ff] font-mono tracking-tight">
+            <div className="text-[11px] text-[#8b8d94] font-mono">
+              {member.interfaceName}
+            </div>
+            <h2 className="text-xl font-medium text-[#e5e7eb] font-mono tracking-tight">
               {member.name}
             </h2>
-            <div className="mt-2 space-y-1">
-              <div className="text-sm text-[#8b8d94] font-mono">
-                <span className="text-[#6b7280]">interface:</span>{' '}
-                <span className="text-[#c5c7ce]">{member.interfaceName}</span>
-              </div>
-              <div className="text-sm text-[#8b8d94] font-mono">
-                <span className="text-[#6b7280]">path:</span>{' '}
-                <span className="text-[#c5c7ce]">{member.path}</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -84,7 +97,7 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
             <div className="text-xs text-[#6b7280] uppercase tracking-wider mb-1">
               Input Parameters
             </div>
-            <div className="font-mono text-sm text-[#00d4ff]">
+            <div className="font-mono text-sm text-[#e5e7eb]">
               {renderArgumentSummary(member.inputArgs)}
             </div>
           </div>
@@ -92,7 +105,7 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
             <div className="text-xs text-[#6b7280] uppercase tracking-wider mb-1">
               Output Parameters
             </div>
-            <div className="font-mono text-sm text-[#00d4ff]">
+            <div className="font-mono text-sm text-[#e5e7eb]">
               {renderArgumentSummary(member.outputArgs)}
             </div>
           </div>
@@ -117,23 +130,37 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
         )}
 
         {/* Actions */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-3 mb-4">
           <button
             onClick={handleInvoke}
             disabled={isInvoking}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-[#00d4ff] to-[#0099cc] text-[#0a0a0f] font-semibold rounded-lg hover:from-[#00e5ff] hover:to-[#00aadd] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#00d4ff]/20 font-mono"
+            className="flex items-center gap-2 px-4 py-2 bg-[#4ec9b0] text-[#1e1e1e] font-medium rounded hover:bg-[#5fd4bc] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-xs"
           >
             <Play className="w-4 h-4" />
-            {isInvoking ? 'Invoking...' : 'Invoke Method'}
+            {isInvoking ? 'Invoking...' : 'Invoke'}
           </button>
           <button
             onClick={handleReset}
             disabled={isInvoking}
-            className="flex items-center gap-2 px-4 py-3 bg-[#1a1a24] text-[#c5c7ce] rounded-lg hover:bg-[#252530] disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-[#2a2a35]"
+            className="flex items-center gap-2 px-4 py-2 bg-[#2d2d2d] text-[#cccccc] rounded hover:bg-[#383838] disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-[#3e3e3e] text-xs"
           >
             <RotateCcw className="w-4 h-4" />
             Reset
           </button>
+          <button
+            onClick={handleCopyCommand}
+            className="flex items-center gap-2 px-4 py-2 bg-[#2d2d2d] text-[#858585] rounded hover:bg-[#383838] hover:text-[#d4d4d4] transition-colors border border-[#3e3e3e] text-xs"
+          >
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            Copy Command
+          </button>
+        </div>
+
+        {/* Command Box */}
+        <div className="bg-[#2d2d2d] border border-[#3e3e3e] rounded p-3 mb-6">
+          <code className="font-mono text-xs text-[#4ec9b0] break-all leading-relaxed">
+            {buildDbusSendCmd()}
+          </code>
         </div>
 
         {/* Results */}
@@ -142,4 +169,3 @@ export function MethodPane({ member, busType, onBack }: MethodPaneProps) {
     </div>
   )
 }
-

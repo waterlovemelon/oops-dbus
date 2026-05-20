@@ -8,7 +8,7 @@ import type { DbusMemberInfo } from '../types/electron-api'
 export interface TreeNode {
   id: string
   label: string
-  type: 'service' | 'path' | 'interface' | 'category' | 'member'
+  type: 'service' | 'path' | 'interface' | 'member'
   children?: TreeNode[]
   member?: DbusMemberInfo
 }
@@ -58,23 +58,19 @@ export function buildServiceTree(members: DbusMemberInfo[], _serviceName: string
         children: [],
       }
 
-      // Add category nodes (Methods, Signals, Properties)
+      // Add members directly under interface, sorted by type then name
       const categories = ['method', 'signal', 'property'] as const
       categories.forEach((category) => {
         const members = typeMap.get(category)
         if (members && members.length > 0) {
-          const categoryNode: TreeNode = {
-            id: `category-${path}-${interfaceName}-${category}`,
-            label: category === 'method' ? 'Methods' : category === 'signal' ? 'Signals' : 'Properties',
-            type: 'category',
-            children: members.map((member) => ({
+          members.forEach((member) => {
+            interfaceNode.children!.push({
               id: member.id,
               label: member.name,
               type: 'member',
               member,
-            })),
-          }
-          interfaceNode.children!.push(categoryNode)
+            })
+          })
         }
       })
 

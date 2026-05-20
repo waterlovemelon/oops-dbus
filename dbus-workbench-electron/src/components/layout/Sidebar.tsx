@@ -1,11 +1,12 @@
 /**
  * Sidebar Component
- * Left sidebar with service tree and member tree
+ * Left sidebar with expandable service tree
  */
 
 import { useMemo, useState } from 'react'
-import { ServiceTree } from '../explorer/ServiceTree'
-import { MemberTree } from '../explorer/MemberTree'
+import { ChevronRight, Search } from 'lucide-react'
+import { TreeNode } from '../explorer/TreeNode'
+import { Input } from '../ui/input'
 import { useAppStore } from '../../stores/appStore'
 import { useServiceExplorer } from '../../hooks/useServiceExplorer'
 import { useServiceIntrospection } from '../../hooks/useServiceIntrospection'
@@ -14,33 +15,44 @@ import { buildServiceTree } from '../../lib/buildTree'
 export function Sidebar() {
   const {
     activeBus,
-    selectedServiceId,
     selectedServiceName,
     setSelectedService,
     selectedMemberId,
     setSelectedMember,
   } = useAppStore()
 
-  const [activeTab, setActiveTab] = useState<'services' | 'members'>('services')
+  const [expandedService, setExpandedService] = useState<string | null>(null)
+  const [filterText, setFilterText] = useState('')
 
   // Fetch services
   const { data: services = [], isLoading: isLoadingServices } = useServiceExplorer(activeBus)
 
-  // Fetch introspection when service is selected
+  // Fetch introspection when service is expanded
   const { data: members = [], isLoading: isLoadingMembers } = useServiceIntrospection(
-    selectedServiceName,
+    expandedService,
     activeBus
   )
 
   const treeNodes = useMemo(
-    () => (selectedServiceName ? buildServiceTree(members, selectedServiceName) : []),
-    [members, selectedServiceName]
+    () => (expandedService ? buildServiceTree(members, expandedService) : []),
+    [members, expandedService]
   )
-  const objectCount = treeNodes.length
 
-  const handleSelectService = (serviceName: string) => {
-    setSelectedService(serviceName, serviceName)
-    setActiveTab('members')
+  const filteredServices = useMemo(() => {
+    if (!filterText) return services
+    const lowerFilter = filterText.toLowerCase()
+    return services.filter((service) =>
+      service.toLowerCase().includes(lowerFilter)
+    )
+  }, [services, filterText])
+
+  const handleToggleService = (serviceName: string) => {
+    if (expandedService === serviceName) {
+      setExpandedService(null)
+    } else {
+      setExpandedService(serviceName)
+      setSelectedService(serviceName, serviceName)
+    }
   }
 
   const handleSelectMember = (node: any) => {
@@ -49,56 +61,89 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full flex-col border-r border-border bg-background">
-      {/* Tabs */}
-      <div className="flex border-b border-border">
-        <button
-          onClick={() => setActiveTab('services')}
-          className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
-            activeTab === 'services'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Services ({services.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('members')}
-          className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
-            activeTab === 'members'
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-          disabled={!selectedServiceName}
-        >
-          Members {selectedServiceName && `(${objectCount})`}
-        </button>
+      {/* Search Bar */}
+      <div className="border-b border-border p-2">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Filter services..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="h-7 pl-7 text-xs"
+          />
+        </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'services' ? (
-          isLoadingServices ? (
-            <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-              Loading services...
-            </div>
-          ) : (
-            <ServiceTree
-              services={services}
-              selectedServiceId={selectedServiceId}
-              onSelectService={handleSelectService}
-            />
-          )
-        ) : isLoadingMembers ? (
+      {/* Service Tree */}
+      <div className="flex-1 overflow-y-auto p-1">
+        {isLoadingServices ? (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            Loading members...
+            Loading services...
+          </div>
+        ) : filteredServices.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+            {services.length === 0 ? 'No services found' : 'No matching services'}
           </div>
         ) : (
-          <MemberTree
-            nodes={treeNodes}
-            selectedMemberId={selectedMemberId}
-            onSelectMember={handleSelectMember}
-          />
+          <div className="space-y-0.5">
+            {filteredServices.map((service) => {
+              const isExpanded = expandedService === service
+              const isSelected = selectedServiceName === service
+
+              return (
+                <div key={service}>
+                  {/* Service Item */}
+                  <button
+                    onClick={() => handleToggleService(service)}
+                    className={`flex w-full items-center gap-1 rounded px-2 py-1 text-left text-xs transition-colors ${
+                      isSelected && !isExpanded
+                        ? 'bg-muted text-foreground'
+                        : 'hover:bg-muted'
+                    } ${isExpanded ? 'bg-muted text-foreground' : ''}`}
+                  >
+                    <ChevronRight
+                      className={`h-3 w-3 shrink-0 transition-transform ${
+                        isExpanded ? 'rotate-90' : ''
+                      }`}
+                    />
+                    <span className="truncate font-mono">{service}</span>
+                  </button>
+
+                  {/* Expanded Members Tree */}
+                  {isExpanded && (
+                    <div className="ml-1">
+                      {isLoadingMembers ? (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          Loading members...
+                        </div>
+                      ) : treeNodes.length > 0 ? (
+                        treeNodes.map((node) => (
+                          <TreeNode
+                            key={node.id}
+                            node={node}
+                            selectedId={selectedMemberId}
+                            onSelect={handleSelectMember}
+                            level={0}
+                          />
+                        ))
+                      ) : (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          No members found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t border-border px-2 py-1 text-xs text-muted-foreground">
+        {filteredServices.length} of {services.length} services
       </div>
     </div>
   )

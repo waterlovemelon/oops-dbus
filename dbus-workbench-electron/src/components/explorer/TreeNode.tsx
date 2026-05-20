@@ -27,10 +27,6 @@ export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
         return <Folder className="h-3.5 w-3.5 text-blue-400" />
       case 'interface':
         return <File className="h-3.5 w-3.5 text-green-400" />
-      case 'category':
-        if (node.label === 'Methods') return <Zap className="h-3.5 w-3.5 text-yellow-400" />
-        if (node.label === 'Signals') return <Activity className="h-3.5 w-3.5 text-purple-400" />
-        return <Settings className="h-3.5 w-3.5 text-cyan-400" />
       case 'member':
         return node.member?.type === 'method' ? (
           <Zap className="h-3.5 w-3.5 text-yellow-400" />
@@ -59,7 +55,7 @@ export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
         className={`flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 hover:bg-muted ${
           isSelected ? 'bg-primary/20 text-primary' : ''
         }`}
-        style={{ paddingLeft: `${level * 12 + 4}px` }}
+        style={{ paddingLeft: `${level * 8 + 4}px` }}
         onClick={handleClick}
       >
         {hasChildren ? (

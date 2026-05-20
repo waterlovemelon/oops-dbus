@@ -17,6 +17,30 @@ export interface SignalSubscriptionParams {
   busType: BusType
 }
 
+export interface GetPropertyParams {
+  serviceName: string
+  path: string
+  interfaceName: string
+  propertyName: string
+  busType: BusType
+}
+
+export interface SetPropertyParams {
+  serviceName: string
+  path: string
+  interfaceName: string
+  propertyName: string
+  value: any
+  busType: BusType
+}
+
+export interface GetAllPropertiesParams {
+  serviceName: string
+  path: string
+  interfaceName: string
+  busType: BusType
+}
+
 export interface ElectronAPI {
   minimizeWindow: () => void
   maximizeWindow: () => void
@@ -30,6 +54,10 @@ export interface ElectronAPI {
   unsubscribeSignal: (params: SignalSubscriptionParams) => Promise<void>
   onSignalReceived: (callback: (event: SignalEvent) => void) => void
   removeSignalListener: () => void
+
+  getProperty: (params: GetPropertyParams) => Promise<DbusMethodResult>
+  setProperty: (params: SetPropertyParams) => Promise<DbusMethodResult>
+  getAllProperties: (params: GetAllPropertiesParams) => Promise<DbusMethodResult>
 }
 
 export interface DbusArgumentInfo {

@@ -89,7 +89,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
         >
           <div className="flex items-start gap-4">
             <div className="w-40 flex-shrink-0">
-              <div className="font-mono text-sm font-semibold text-[#00d4ff]">
+              <div className="font-mono text-xs font-medium text-[#00d4ff]">
                 {arg.name || `Argument ${index + 1}`}
               </div>
               <div className="mt-1 font-mono text-xs text-[#6b7280]">
@@ -98,7 +98,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
             </div>
 
             <div className="flex-1">
-              <label className="mb-2 block text-sm text-[#c5c7ce]">{arg.description}</label>
+              <label className="mb-2 block text-xs text-[#c5c7ce]">{arg.description}</label>
 
               {arg.complexType ? (
                 <div>
@@ -106,7 +106,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
                     value={complexInputTexts[index] ?? ''}
                     onChange={(event) => handleComplexValueChange(index, event.target.value)}
                     disabled={disabled}
-                    className="min-h-[80px] w-full resize-y rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-sm text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[80px] w-full resize-y rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-xs text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder={getPlaceholderForType(arg.type)}
                     rows={3}
                   />
@@ -120,7 +120,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
                   value={values[index] ?? ''}
                   onChange={(event) => handleValueChange(index, parseScalarValue(event.target.value, arg.type))}
                   disabled={disabled}
-                  className="w-full rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-sm text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-xs text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder={getPlaceholderForType(arg.type)}
                 />
               )}

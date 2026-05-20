@@ -7,7 +7,10 @@ import type {
   BusType,
   DbusMemberInfo,
   DbusMethodResult,
+  GetAllPropertiesParams,
+  GetPropertyParams,
   InvokeMethodParams,
+  SetPropertyParams,
   SignalEvent,
   SignalSubscriptionParams,
 } from '../types/electron-api'
@@ -94,5 +97,45 @@ export const ipcClient = {
 
   removeSignalListener: (): void => {
     window.electronAPI.removeSignalListener()
+  },
+
+  // PropertyAccessor
+  getProperty: async (params: GetPropertyParams): Promise<DbusMethodResult> => {
+    try {
+      const result = await window.electronAPI.getProperty(params)
+      return result
+    } catch (error) {
+      console.error('Failed to get property:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  },
+
+  setProperty: async (params: SetPropertyParams): Promise<DbusMethodResult> => {
+    try {
+      const result = await window.electronAPI.setProperty(params)
+      return result
+    } catch (error) {
+      console.error('Failed to set property:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  },
+
+  getAllProperties: async (params: GetAllPropertiesParams): Promise<DbusMethodResult> => {
+    try {
+      const result = await window.electronAPI.getAllProperties(params)
+      return result
+    } catch (error) {
+      console.error('Failed to get all properties:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
   },
 }

@@ -44,6 +44,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
     busType: 'session' | 'system'
   }) => ipcRenderer.invoke('dbus:unsubscribeSignal', params),
 
+  // PropertyAccessor
+  getProperty: (params: {
+    serviceName: string
+    path: string
+    interfaceName: string
+    propertyName: string
+    busType: 'session' | 'system'
+  }) => ipcRenderer.invoke('dbus:getProperty', params),
+
+  setProperty: (params: {
+    serviceName: string
+    path: string
+    interfaceName: string
+    propertyName: string
+    value: any
+    busType: 'session' | 'system'
+  }) => ipcRenderer.invoke('dbus:setProperty', params),
+
+  getAllProperties: (params: {
+    serviceName: string
+    path: string
+    interfaceName: string
+    busType: 'session' | 'system'
+  }) => ipcRenderer.invoke('dbus:getAllProperties', params),
+
   // Signal event listener
   onSignalReceived: (callback: (event: any) => void) => {
     ipcRenderer.on('dbus:signalReceived', (_event, data) => callback(data))
