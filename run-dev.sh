@@ -1,7 +1,10 @@
-#!/usr/bin/env bash
+#!/bin/bash
+# Run D-Bus Workbench Electron in development mode
 
-set -euo pipefail
+cd "$(dirname "$0")"
 
-cmake -S . -B build
-cmake --build build
-exec ./build/dd-feet
+echo "Starting D-Bus Workbench Electron..."
+echo "Press Ctrl+C to stop"
+echo ""
+
+npm run dev
