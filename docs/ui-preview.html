@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D-Bus Workbench - UI Preview</title>
+  <style>
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #252526;
+      --bg-card: #2d2d2d;
+      --bg-hover: #383838;
+      --border: #3e3e3e;
+      --text-primary: #d4d4d4;
+      --text-secondary: #cccccc;
+      --text-muted: #858585;
+      --accent: #4ec9b0;
+      --accent-hover: #5fd4bc;
+      --error: #f44747;
+      --warning: #cca700;
+      --purple: #c586c0;
+      --blue: #569cd6;
+      --yellow: #dcdcaa;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 30px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 0 8px;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-title {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .top-bar-center {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--bg-card);
+      padding: 2px;
+      border-radius: 4px;
+    }
+
+    .bus-btn {
+      padding: 2px 10px;
+      font-size: 11px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.15s;
+      background: transparent;
+      color: var(--text-muted);
+    }
+
+    .bus-btn.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .bus-btn:hover:not(.active) {
+      background: var(--bg-hover);
+    }
+
+    .top-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .window-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .window-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    .window-btn.close:hover {
+      background: var(--error);
+      color: white;
+    }
+
+    /* Main Content */
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-primary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 4px 6px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .service-footer {
+      padding: 4px 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Tree */
+    .tree-node {
+      padding: 3px 8px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .tree-node:hover {
+      background: var(--bg-hover);
+    }
+
+    .tree-node.active {
+      background: var(--bg-hover);
+      color: var(--accent);
+    }
+
+    .tree-node.selected-service {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .tree-expand {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.15s;
+      width: 12px;
+      flex-shrink: 0;
+    }
+
+    .tree-expand.expanded {
+      transform: rotate(90deg);
+    }
+
+    .tree-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tree-label.mono {
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .tree-label.section {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .tree-children {
+      padding-left: 16px;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .welcome {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+    }
+
+    .welcome-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .welcome-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .welcome-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .pane-container {
+      flex: 1;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .pane-container.active {
+      display: block;
+    }
+
+    .pane-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
+
+    .back-button:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .interface-name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .member-name {
+      font-size: 20px;
+      font-weight: 500;
+      font-family: var(--font-mono);
+    }
+
+    .pane-content {
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .metadata-grid { display: grid; gap: 8px; }
+    .metadata-item { display: flex; align-items: baseline; gap: 8px; }
+    .metadata-label { font-size: 12px; color: var(--text-muted); min-width: 80px; }
+    .metadata-value { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+
+    .button-group { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .btn {
+      padding: 5px 12px;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .btn-copy { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border); font-size: 11px; }
+    .btn-copy:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .btn-danger { background: var(--bg-card); color: var(--error); border: 1px solid var(--error); }
+    .btn-danger:hover { background: rgba(244, 71, 71, 0.1); }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-dot.pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .value-display {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 12px;
+      min-height: 60px;
+    }
+
+    .value-text { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); white-space: pre-wrap; word-break: break-all; }
+    .value-placeholder { color: var(--text-muted); font-size: 12px; }
+
+    .loading { display: flex; align-items: center; justify-content: center; padding: 30px; color: var(--text-muted); font-size: 12px; }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+
+    /* Command Box */
+    .command-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .command-text {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .copy-feedback {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: var(--bg-primary);
+      padding: 6px 12px;
+      border-radius: 3px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+
+    .copy-feedback.show {
+      opacity: 1;
+    }
+
+    /* Bottom Panel */
+    .bottom-panel {
+      height: 150px;
+      background: var(--bg-primary);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bottom-panel.collapsed {
+      height: 28px;
+    }
+
+    .bottom-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 28px;
+      padding: 0 8px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bottom-panel-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .event-count {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      padding: 0 5px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    .bottom-panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .icon-btn {
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 11px;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-hover);
+    }
+
+    .bottom-panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+    }
+
+    .signal-event {
+      padding: 6px 10px;
+      background: var(--bg-card);
+      border-radius: 3px;
+      margin-bottom: 4px;
+      font-size: 11px;
+    }
+
+    .signal-event-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2px;
+    }
+
+    .signal-name {
+      font-weight: 500;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .signal-time {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .signal-interface {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .signal-args {
+      margin-top: 2px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <span class="app-title">D-Bus Workbench</span>
+      </div>
+      <div class="top-bar-center">
+        <button class="bus-btn active" onclick="switchBus('session', this)">Session</button>
+        <button class="bus-btn" onclick="switchBus('system', this)">System</button>
+      </div>
+      <div class="top-bar-right">
+        <button class="window-btn">_</button>
+        <button class="window-btn">□</button>
+        <button class="window-btn close">×</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <input class="search-input" type="text" placeholder="Filter services...">
+        </div>
+        <div class="sidebar-content">
+          <!-- Service 1: Expanded -->
+          <div class="tree-node selected-service" onclick="toggleService(this, 'svc1')">
+            <span class="tree-expand expanded" id="expand-svc1">▶</span>
+            <span class="tree-label mono">org.freedesktop.DBus</span>
+          </div>
+          <div class="tree-children" id="children-svc1">
+            <div class="tree-node" onclick="toggleTree(this)">
+              <span class="tree-expand">▶</span>
+              <span class="tree-label mono">/org/freedesktop/DBus</span>
+            </div>
+            <div class="tree-children hidden">
+              <div class="tree-node" onclick="toggleTree(this)">
+                <span class="tree-expand">▶</span>
+                <span class="tree-label mono">org.freedesktop.DBus</span>
+              </div>
+              <div class="tree-children hidden">
+                <div class="tree-node" onclick="toggleTree(this)">
+                  <span class="tree-expand">▶</span>
+                  <span class="tree-label section">Methods</span>
+                </div>
+                <div class="tree-children hidden">
+                  <div class="tree-node" onclick="selectMember(this, 'method', 'ListNames')">
+                    <span class="tree-expand" style="visibility: hidden;">▶</span>
+                    <span class="tree-label">ListNames</span>
+                  </div>
+                  <div class="tree-node" onclick="selectMember(this, 'method', 'Hello')">
+                    <span class="tree-expand" style="visibility: hidden;">▶</span>
+                    <span class="tree-label">Hello</span>
+                  </div>
+                </div>
+                <div class="tree-node" onclick="toggleTree(this)">
+                  <span class="tree-expand">▶</span>
+                  <span class="tree-label section">Signals</span>
+                </div>
+                <div class="tree-children hidden">
+                  <div class="tree-node" onclick="selectMember(this, 'signal', 'NameOwnerChanged')">
+                    <span class="tree-expand" style="visibility: hidden;">▶</span>
+                    <span class="tree-label">NameOwnerChanged</span>
+                  </div>
+                </div>
+                <div class="tree-node" onclick="toggleTree(this)">
+                  <span class="tree-expand">▶</span>
+                  <span class="tree-label section">Properties</span>
+                </div>
+                <div class="tree-children hidden">
+                  <div class="tree-node" onclick="selectMember(this, 'property', 'Version')">
+                    <span class="tree-expand" style="visibility: hidden;">▶</span>
+                    <span class="tree-label">Version</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service 2: Collapsed -->
+          <div class="tree-node" onclick="toggleService(this, 'svc2')">
+            <span class="tree-expand" id="expand-svc2">▶</span>
+            <span class="tree-label mono">org.freedesktop.systemd1</span>
+          </div>
+          <div class="tree-children hidden" id="children-svc2">
+            <div class="tree-node">
+              <span class="tree-expand" style="visibility: hidden;">▶</span>
+              <span class="tree-label" style="color: var(--text-muted); font-size: 11px;">Loading...</span>
+            </div>
+          </div>
+
+          <!-- Service 3: Collapsed -->
+          <div class="tree-node" onclick="toggleService(this, 'svc3')">
+            <span class="tree-expand" id="expand-svc3">▶</span>
+            <span class="tree-label mono">org.freedesktop.login1</span>
+          </div>
+          <div class="tree-children hidden" id="children-svc3"></div>
+
+          <!-- Service 4: Collapsed -->
+          <div class="tree-node" onclick="toggleService(this, 'svc4')">
+            <span class="tree-expand" id="expand-svc4">▶</span>
+            <span class="tree-label mono">com.deepin.dde.daemon</span>
+          </div>
+          <div class="tree-children hidden" id="children-svc4"></div>
+
+          <!-- Service 5: Collapsed -->
+          <div class="tree-node" onclick="toggleService(this, 'svc5')">
+            <span class="tree-expand" id="expand-svc5">▶</span>
+            <span class="tree-label mono">com.deepin.SessionManager</span>
+          </div>
+          <div class="tree-children hidden" id="children-svc5"></div>
+        </div>
+        <div class="service-footer">5 of 42 services</div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        <!-- Welcome Screen -->
+        <div id="welcome" class="welcome">
+          <div class="welcome-icon">⚡</div>
+          <div class="welcome-title">D-Bus Workbench</div>
+          <div class="welcome-subtitle">Select a service to explore</div>
+        </div>
+
+        <!-- Method Pane -->
+        <div id="pane-method" class="pane-container">
+          <div class="pane-header">
+            <button class="back-button" onclick="showWelcome()">← Back</button>
+            <div class="interface-name">org.freedesktop.DBus</div>
+            <div class="member-name">ListNames</div>
+          </div>
+          <div class="pane-content">
+            <div class="card">
+              <div class="card-title">Summary</div>
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Input</span>
+                  <span class="metadata-value">None</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Output</span>
+                  <span class="metadata-value">as (array of string)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button class="btn btn-primary" onclick="simulateInvoke()">Invoke</button>
+              <button class="btn btn-copy" onclick="copyCommand('method')">Copy Command</button>
+            </div>
+
+            <div class="command-box">
+              <span class="command-text" id="method-cmd">dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames</span>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <div class="card-title">Result</div>
+              <div id="method-result" class="value-display">
+                <div class="value-placeholder">Click "Invoke" to execute</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signal Pane -->
+        <div id="pane-signal" class="pane-container">
+          <div class="pane-header">
+            <button class="back-button" onclick="showWelcome()">← Back</button>
+            <div class="interface-name">org.freedesktop.DBus</div>
+            <div class="member-name">NameOwnerChanged</div>
+          </div>
+          <div class="pane-content">
+            <div class="card">
+              <div class="card-title">Monitor</div>
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Path</span>
+                  <span class="metadata-value">/org/freedesktop/DBus</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Status</span>
+                  <span class="metadata-value">
+                    <span id="signal-status" class="status-badge" style="background: var(--bg-card); color: var(--text-muted);">
+                      <span class="status-dot"></span>
+                      Inactive
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="button-group">
+              <button id="signal-btn" class="btn btn-primary" onclick="toggleSignal()">Start Monitor</button>
+              <button class="btn btn-copy" onclick="copyCommand('signal')">Copy Command</button>
+            </div>
+
+            <div class="command-box">
+              <span class="command-text" id="signal-cmd">dbus-monitor --session "type='signal',interface='org.freedesktop.DBus',member='NameOwnerChanged'"</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Property Pane -->
+        <div id="pane-property" class="pane-container">
+          <div class="pane-header">
+            <button class="back-button" onclick="showWelcome()">← Back</button>
+            <div class="interface-name">org.freedesktop.DBus</div>
+            <div class="member-name">Version</div>
+          </div>
+          <div class="pane-content">
+            <div class="card">
+              <div class="card-title">Metadata</div>
+              <div class="metadata-grid">
+                <div class="metadata-item">
+                  <span class="metadata-label">Type</span>
+                  <span class="metadata-value">s (string)</span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Access</span>
+                  <span class="metadata-value">
+                    <span class="status-badge" style="background: var(--bg-card); color: var(--text-muted);">read</span>
+                  </span>
+                </div>
+                <div class="metadata-item">
+                  <span class="metadata-label">Path</span>
+                  <span class="metadata-value">/org/freedesktop/DBus</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <div class="card-title" style="margin-bottom: 0;">Value</div>
+                <div class="button-group">
+                  <button class="btn btn-primary" onclick="simulateReadProp()">Get</button>
+                  <button class="btn btn-copy" onclick="copyCommand('prop-get')">Copy Get</button>
+                  <button class="btn btn-copy" onclick="copyCommand('prop-set')">Copy Set</button>
+                </div>
+              </div>
+              <div id="prop-result" class="value-display">
+                <div class="value-placeholder">Click "Get" to read property</div>
+              </div>
+            </div>
+
+            <div class="command-box">
+              <span class="command-text" id="prop-get-cmd">dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.Properties.Get string:'org.freedesktop.DBus' string:'Version'</span>
+            </div>
+
+            <div class="command-box" style="margin-top: 6px;">
+              <span class="command-text" id="prop-set-cmd">dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.Properties.Set string:'org.freedesktop.DBus' string:'Version' string:'"new_value"'</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Panel -->
+    <div class="bottom-panel">
+      <div class="bottom-panel-header">
+        <div class="bottom-panel-title">
+          Signal Monitor
+          <span class="event-count">2</span>
+        </div>
+        <div class="bottom-panel-actions">
+          <button class="icon-btn" title="Clear">Clear</button>
+          <button class="icon-btn" title="Collapse">▼</button>
+        </div>
+      </div>
+      <div class="bottom-panel-content">
+        <div class="signal-event">
+          <div class="signal-event-header">
+            <span class="signal-name">NameOwnerChanged</span>
+            <span class="signal-time">14:23:45</span>
+          </div>
+          <div class="signal-interface">org.freedesktop.DBus</div>
+          <div class="signal-args">["org.example.Foo", "", ":1.42"]</div>
+        </div>
+        <div class="signal-event">
+          <div class="signal-event-header">
+            <span class="signal-name">NameOwnerChanged</span>
+            <span class="signal-time">14:23:46</span>
+          </div>
+          <div class="signal-interface">org.freedesktop.DBus</div>
+          <div class="signal-args">["org.example.Bar", ":1.43", ""]</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="copy-feedback" class="copy-feedback">Copied!</div>
+
+  <script>
+    function switchBus(bus, btn) {
+      document.querySelectorAll('.bus-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    }
+
+    function toggleService(node, svcId) {
+      var children = document.getElementById('children-' + svcId);
+      var expand = document.getElementById('expand-' + svcId);
+
+      if (children) {
+        children.classList.toggle('hidden');
+      }
+      if (expand) {
+        expand.classList.toggle('expanded');
+      }
+
+      // Highlight selected service
+      document.querySelectorAll('.tree-node.selected-service').forEach(function(n) {
+        n.classList.remove('selected-service');
+      });
+      node.classList.add('selected-service');
+    }
+
+    function toggleTree(node) {
+      var children = node.nextElementSibling;
+      if (children && children.classList.contains('tree-children')) {
+        children.classList.toggle('hidden');
+        var expand = node.querySelector('.tree-expand');
+        if (expand) expand.classList.toggle('expanded');
+      }
+    }
+
+    function selectMember(node, type, name) {
+      document.querySelectorAll('.tree-node').forEach(function(n) { n.classList.remove('active'); });
+      node.classList.add('active');
+      document.querySelectorAll('.pane-container').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('welcome').classList.add('hidden');
+      document.getElementById('pane-' + type).classList.add('active');
+    }
+
+    function showWelcome() {
+      document.querySelectorAll('.pane-container').forEach(function(p) { p.classList.remove('active'); });
+      document.getElementById('welcome').classList.remove('hidden');
+      document.querySelectorAll('.tree-node').forEach(function(n) { n.classList.remove('active'); });
+    }
+
+    function simulateInvoke() {
+      var result = document.getElementById('method-result');
+      result.innerHTML = '<div class="loading"><div class="spinner"></div>Waiting...</div>';
+      setTimeout(function() {
+        var pre = document.createElement('pre');
+        pre.className = 'value-text';
+        pre.textContent = '[\n  "org.freedesktop.DBus",\n  "org.freedesktop.systemd1",\n  ":1.42"\n]';
+        result.innerHTML = '';
+        result.appendChild(pre);
+      }, 1200);
+    }
+
+    var signalActive = false;
+    function toggleSignal() {
+      var status = document.getElementById('signal-status');
+      var btn = document.getElementById('signal-btn');
+
+      if (signalActive) {
+        status.className = 'status-badge';
+        status.style.background = 'var(--bg-card)';
+        status.style.color = 'var(--text-muted)';
+        status.innerHTML = '<span class="status-dot"></span> Inactive';
+        btn.className = 'btn btn-primary';
+        btn.textContent = 'Start Monitor';
+        signalActive = false;
+      } else {
+        status.className = 'status-badge';
+        status.style.background = 'var(--bg-card)';
+        status.style.color = 'var(--accent)';
+        status.innerHTML = '<span class="status-dot pulse"></span> Active';
+        btn.className = 'btn btn-danger';
+        btn.textContent = 'Stop Monitor';
+        signalActive = true;
+      }
+    }
+
+    function simulateReadProp() {
+      var result = document.getElementById('prop-result');
+      result.innerHTML = '<div class="loading"><div class="spinner"></div>Reading...</div>';
+      setTimeout(function() {
+        var pre = document.createElement('pre');
+        pre.className = 'value-text';
+        pre.textContent = '"1.12.28"';
+        result.innerHTML = '';
+        result.appendChild(pre);
+      }, 800);
+    }
+
+    function copyCommand(type) {
+      var cmdElement;
+      if (type === 'method') {
+        cmdElement = document.getElementById('method-cmd');
+      } else if (type === 'signal') {
+        cmdElement = document.getElementById('signal-cmd');
+      } else if (type === 'prop-get') {
+        cmdElement = document.getElementById('prop-get-cmd');
+      } else if (type === 'prop-set') {
+        cmdElement = document.getElementById('prop-set-cmd');
+      }
+
+      if (cmdElement) {
+        var text = cmdElement.textContent;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text);
+        }
+        showFeedback();
+      }
+    }
+
+    function showFeedback() {
+      var feedback = document.getElementById('copy-feedback');
+      feedback.classList.add('show');
+      setTimeout(function() {
+        feedback.classList.remove('show');
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
