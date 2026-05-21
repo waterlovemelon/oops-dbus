@@ -9,13 +9,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeWindow: () => ipcRenderer.send('window:close'),
   isMaximized: () => ipcRenderer.sendSync('window:isMaximized'),
 
-  // D-Bus operations (will be implemented in next phase)
+  // D-Bus operations
   // ServiceExplorer
-  listServices: (busType: 'session' | 'system') =>
-    ipcRenderer.invoke('dbus:listServices', busType),
+  listServices: (busType: 'session' | 'system', connectionId?: string) =>
+    ipcRenderer.invoke('dbus:listServices', busType, connectionId),
 
-  introspectServiceMembers: (serviceName: string, busType: 'session' | 'system') =>
-    ipcRenderer.invoke('dbus:introspectServiceMembers', serviceName, busType),
+  introspectServiceMembers: (serviceName: string, busType: 'session' | 'system', connectionId?: string) =>
+    ipcRenderer.invoke('dbus:introspectServiceMembers', serviceName, busType, connectionId),
 
   // MethodInvoker
   invokeMethod: (params: {
@@ -76,5 +76,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   removeSignalListener: () => {
     ipcRenderer.removeAllListeners('dbus:signalReceived')
+  },
+
+  // SSH Remote Connection
+  sshListConnections: () => ipcRenderer.invoke('ssh:listConnections'),
+  sshCreateConnection: (conn: any) => ipcRenderer.invoke('ssh:createConnection', conn),
+  sshUpdateConnection: (conn: any) => ipcRenderer.invoke('ssh:updateConnection', conn),
+  sshDeleteConnection: (id: string) => ipcRenderer.invoke('ssh:deleteConnection', id),
+  sshConnect: (id: string) => ipcRenderer.invoke('ssh:connect', id),
+  sshDisconnect: (id: string) => ipcRenderer.invoke('ssh:disconnect', id),
+  sshGetConnectionState: (id: string) => ipcRenderer.invoke('ssh:getConnectionState', id),
+  sshGetAllConnectionStates: () => ipcRenderer.invoke('ssh:getAllConnectionStates'),
+  onSSHConnectionStatus: (callback: (state: any) => void) => {
+    ipcRenderer.on('ssh:connectionStatus', (_event, data) => callback(data))
+  },
+  removeSSHStatusListener: () => {
+    ipcRenderer.removeAllListeners('ssh:connectionStatus')
   },
 })

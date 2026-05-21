@@ -5,11 +5,13 @@
 
 import type {
   BusType,
+  ConnectionState,
   DbusMemberInfo,
   DbusMethodResult,
   GetAllPropertiesParams,
   GetPropertyParams,
   InvokeMethodParams,
+  RemoteConnection,
   SetPropertyParams,
   SignalEvent,
   SignalSubscriptionParams,
@@ -37,9 +39,9 @@ export const ipcClient = {
   },
 
   // ServiceExplorer
-  listServices: async (busType: BusType): Promise<string[]> => {
+  listServices: async (busType: BusType, connectionId?: string): Promise<string[]> => {
     try {
-      const services = await window.electronAPI.listServices(busType)
+      const services = await window.electronAPI.listServices(busType, connectionId)
       return services
     } catch (error) {
       console.error('Failed to list services:', error)
@@ -47,9 +49,9 @@ export const ipcClient = {
     }
   },
 
-  introspectServiceMembers: async (serviceName: string, busType: BusType): Promise<DbusMemberInfo[]> => {
+  introspectServiceMembers: async (serviceName: string, busType: BusType, connectionId?: string): Promise<DbusMemberInfo[]> => {
     try {
-      const members = await window.electronAPI.introspectServiceMembers(serviceName, busType)
+      const members = await window.electronAPI.introspectServiceMembers(serviceName, busType, connectionId)
       return members
     } catch (error) {
       console.error('Failed to introspect service:', error)
@@ -137,5 +139,42 @@ export const ipcClient = {
         error: error instanceof Error ? error.message : String(error),
       }
     }
+  },
+
+  // SSH Remote Connection
+  sshListConnections: async (): Promise<RemoteConnection[]> => {
+    return window.electronAPI.sshListConnections()
+  },
+
+  sshCreateConnection: async (conn: RemoteConnection): Promise<RemoteConnection[]> => {
+    return window.electronAPI.sshCreateConnection(conn)
+  },
+
+  sshUpdateConnection: async (conn: RemoteConnection): Promise<RemoteConnection[]> => {
+    return window.electronAPI.sshUpdateConnection(conn)
+  },
+
+  sshDeleteConnection: async (id: string): Promise<RemoteConnection[]> => {
+    return window.electronAPI.sshDeleteConnection(id)
+  },
+
+  sshConnect: async (id: string): Promise<ConnectionState> => {
+    return window.electronAPI.sshConnect(id)
+  },
+
+  sshDisconnect: async (id: string): Promise<ConnectionState> => {
+    return window.electronAPI.sshDisconnect(id)
+  },
+
+  sshGetAllConnectionStates: async (): Promise<ConnectionState[]> => {
+    return window.electronAPI.sshGetAllConnectionStates()
+  },
+
+  onSSHConnectionStatus: (callback: (state: ConnectionState) => void): void => {
+    window.electronAPI.onSSHConnectionStatus(callback)
+  },
+
+  removeSSHStatusListener: (): void => {
+    window.electronAPI.removeSSHStatusListener()
   },
 }

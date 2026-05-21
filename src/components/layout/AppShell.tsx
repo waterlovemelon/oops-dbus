@@ -3,15 +3,18 @@
  * Main application layout with resizable panels
  */
 
+import { useState } from 'react'
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
 import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
 import { MethodPane } from '../workbench/MethodPane'
 import { PropertyPane } from '../property/PropertyPane'
+import { RemoteDrawer } from '../remote/RemoteDrawer'
 import { useAppStore } from '../../stores/appStore'
 
 export function AppShell() {
   const { selectedNode, activeBus, clearSelectedMember } = useAppStore()
+  const [remoteDrawerOpen, setRemoteDrawerOpen] = useState(false)
 
   const selectedMethod = selectedNode?.member?.type === 'method' ? selectedNode.member : null
   const selectedProperty = selectedNode?.member?.type === 'property' ? selectedNode.member : null
@@ -23,7 +26,7 @@ export function AppShell() {
   return (
     <div className="flex h-screen flex-col overflow-hidden rounded-xl bg-background text-foreground">
       {/* Top Bar */}
-      <TopBar />
+      <TopBar onOpenRemoteDrawer={() => setRemoteDrawerOpen(true)} />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -96,6 +99,9 @@ export function AppShell() {
           </Panel>
         </PanelGroup>
       </div>
+
+      {/* Remote Connection Drawer */}
+      <RemoteDrawer open={remoteDrawerOpen} onClose={() => setRemoteDrawerOpen(false)} />
     </div>
   )
 }

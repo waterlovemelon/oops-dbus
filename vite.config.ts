@@ -19,7 +19,7 @@ export default defineConfig({
           build: {
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['dbus-next']
+              external: ['dbus-next', 'ssh2']
             }
           }
         }
@@ -47,7 +47,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      external: ['dbus-next']
+      external: ['dbus-next', 'ssh2']
     }
   }
 })

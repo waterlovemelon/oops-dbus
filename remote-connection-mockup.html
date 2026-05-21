@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>远程连接 - UI/UX Mockup</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #1e1e1e;
+    color: #cccccc;
+    overflow: hidden;
+    height: 100vh;
+    user-select: none;
+  }
+
+  /* ── TopBar ── */
+  .topbar {
+    height: 36px;
+    background: #252526;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    -webkit-app-region: drag;
+    border-bottom: 1px solid #3e3e3e;
+    position: relative;
+    z-index: 100;
+  }
+  .topbar .menu-btn {
+    -webkit-app-region: no-drag;
+    background: none;
+    border: none;
+    color: #cccccc;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .topbar .menu-btn:hover { background: #383838; }
+  .topbar .bus-selector {
+    -webkit-app-region: no-drag;
+    display: flex;
+    margin: 0 auto;
+    background: #2d2d2d;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #3e3e3e;
+  }
+  .topbar .bus-selector button {
+    background: none;
+    border: none;
+    color: #858585;
+    padding: 4px 16px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .topbar .bus-selector button.active {
+    background: #4ec9b0;
+    color: #1e1e1e;
+    font-weight: 600;
+  }
+  .topbar .window-controls {
+    -webkit-app-region: no-drag;
+    display: flex;
+    gap: 2px;
+  }
+  .topbar .window-controls button {
+    background: none;
+    border: none;
+    color: #858585;
+    width: 36px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+  }
+  .topbar .window-controls button:hover { background: #383838; }
+  .topbar .window-controls button.close:hover { background: #e81123; color: #fff; }
+
+  /* ── Menu Dropdown ── */
+  .menu-dropdown {
+    position: absolute;
+    top: 36px;
+    left: 8px;
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    border-radius: 6px;
+    padding: 4px;
+    min-width: 160px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: none;
+  }
+  .menu-dropdown.open { display: block; }
+  .menu-dropdown button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #cccccc;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .menu-dropdown button:hover { background: #383838; }
+  .menu-dropdown button.highlight { color: #4ec9b0; }
+
+  /* ── Main Layout ── */
+  .app-layout {
+    display: flex;
+    height: calc(100vh - 36px);
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 280px;
+    min-width: 200px;
+    background: #1e1e1e;
+    border-right: 1px solid #3e3e3e;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-search {
+    padding: 8px;
+    border-bottom: 1px solid #3e3e3e;
+  }
+  .sidebar-search input {
+    width: 100%;
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    border-radius: 4px;
+    color: #cccccc;
+    padding: 6px 8px 6px 28px;
+    font-size: 12px;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23858585' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 8px center;
+  }
+  .sidebar-search input:focus { border-color: #00d4ff; }
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .service-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .service-item:hover { background: #2d2d2d; }
+  .service-item.selected { background: #094771; }
+  .service-item .chevron { color: #858585; font-size: 10px; }
+  .sidebar-footer {
+    padding: 8px;
+    border-top: 1px solid #3e3e3e;
+    font-size: 11px;
+    color: #858585;
+    text-align: center;
+  }
+
+  /* ── Main Content ── */
+  .main-content {
+    flex: 1;
+    background: #1e1e1e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #858585;
+    font-size: 13px;
+  }
+  .main-content .placeholder { text-align: center; }
+  .main-content .placeholder .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.3; }
+
+  /* ── Resize Handle ── */
+  .resize-handle {
+    width: 4px;
+    background: #3e3e3e;
+    cursor: col-resize;
+    transition: background 0.15s;
+  }
+  .resize-handle:hover { background: #3b82f6; }
+
+  /* ══════════════════════════════════════════
+     Remote Connection Drawer
+     ══════════════════════════════════════════ */
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .drawer-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed;
+    top: 36px;
+    right: 0;
+    bottom: 0;
+    width: 420px;
+    background: #252526;
+    border-left: 1px solid #3e3e3e;
+    z-index: 301;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.3);
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #3e3e3e;
+    flex-shrink: 0;
+  }
+  .drawer-header h2 { font-size: 14px; font-weight: 600; color: #cccccc; }
+  .drawer-header .close-btn {
+    background: none; border: none; color: #858585; cursor: pointer;
+    padding: 4px; border-radius: 4px; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .drawer-header .close-btn:hover { background: #383838; color: #cccccc; }
+
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  /* ── Connection List ── */
+  .connection-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .connection-card {
+    background: #2d2d2d;
+    border: 1px solid #3e3e3e;
+    border-radius: 6px;
+    padding: 12px;
+    cursor: default;
+    transition: border-color 0.15s;
+  }
+  .connection-card:hover { border-color: #4ec9b0; }
+
+  .connection-card .card-top {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .connection-card .card-name {
+    font-size: 13px; font-weight: 600; color: #e5e7eb;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .connection-card .card-name .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #858585; flex-shrink: 0;
+  }
+  .connection-card .card-name .status-dot.connected { background: #4ec9b0; }
+  .connection-card .card-name .status-dot.error { background: #f44747; }
+
+  .connection-card .card-actions {
+    display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s;
+  }
+  .connection-card:hover .card-actions { opacity: 1; }
+
+  .connection-card .card-actions button {
+    background: none; border: none; color: #858585; cursor: pointer;
+    padding: 4px 6px; border-radius: 4px; font-size: 11px;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .connection-card .card-actions button:hover { background: #383838; color: #cccccc; }
+  .connection-card .card-actions button.danger:hover { background: #5a1d1d; color: #f44747; }
+
+  .connection-card .card-details { display: flex; flex-direction: column; gap: 4px; }
+  .connection-card .detail-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .connection-card .detail-label { color: #858585; min-width: 48px; flex-shrink: 0; }
+  .connection-card .detail-value { color: #b5b5b5; font-family: monospace; font-size: 11px; }
+
+  .connection-card .card-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px; padding-top: 8px; border-top: 1px solid #3e3e3e;
+  }
+  .connection-card .card-type {
+    font-size: 10px; color: #858585; background: #1e1e1e;
+    padding: 2px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .connection-card .connect-btn {
+    background: #0e639c; border: none; color: #fff;
+    padding: 4px 12px; border-radius: 4px; font-size: 11px;
+    cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+  .connection-card .connect-btn:hover { background: #1177bb; }
+  .connection-card .connect-btn.connected {
+    background: transparent; border: 1px solid #4ec9b0; color: #4ec9b0;
+  }
+  .connection-card .connect-btn.connected:hover { background: rgba(78, 201, 176, 0.1); }
+
+  /* ── Add Button ── */
+  .add-connection-btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; padding: 10px; background: transparent;
+    border: 1px dashed #3e3e3e; border-radius: 6px;
+    color: #858585; font-size: 12px; cursor: pointer;
+    transition: all 0.15s; margin-top: 4px;
+  }
+  .add-connection-btn:hover {
+    border-color: #4ec9b0; color: #4ec9b0; background: rgba(78, 201, 176, 0.05);
+  }
+
+  /* ══════════════════════════════════════════
+     Add/Edit Dialog
+     ══════════════════════════════════════════ */
+  .dialog-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 400; display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .dialog-overlay.visible { opacity: 1; pointer-events: auto; }
+
+  .dialog {
+    background: #2d2d2d; border: 1px solid #3e3e3e; border-radius: 8px;
+    width: 380px; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    transform: scale(0.95); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .dialog-overlay.visible .dialog { transform: scale(1); }
+
+  .dialog-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid #3e3e3e;
+  }
+  .dialog-header h3 { font-size: 14px; font-weight: 600; color: #cccccc; }
+  .dialog-header .close-btn {
+    background: none; border: none; color: #858585; cursor: pointer;
+    padding: 4px; border-radius: 4px; font-size: 16px;
+  }
+  .dialog-header .close-btn:hover { background: #383838; color: #cccccc; }
+
+  .dialog-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label {
+    font-size: 11px; color: #858585; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group select {
+    background: #1e1e1e; border: 1px solid #3e3e3e; border-radius: 4px;
+    color: #cccccc; padding: 8px 10px; font-size: 13px; outline: none;
+    font-family: monospace;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: #00d4ff; }
+  .form-group input::placeholder { color: #555; }
+  .form-group select {
+    cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23858585' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+  }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+  .form-group .hint { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+  .dialog-footer {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 12px 16px; border-top: 1px solid #3e3e3e;
+  }
+  .dialog-footer button { padding: 6px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; }
+  .dialog-footer .cancel-btn { background: #3e3e3e; color: #cccccc; }
+  .dialog-footer .cancel-btn:hover { background: #4e4e4e; }
+  .dialog-footer .save-btn { background: #0e639c; color: #fff; }
+  .dialog-footer .save-btn:hover { background: #1177bb; }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .connection-card { animation: fadeInUp 0.25s ease forwards; }
+  .connection-card:nth-child(2) { animation-delay: 0.05s; }
+  .connection-card:nth-child(3) { animation-delay: 0.1s; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+  /* ── Mockup Label ── */
+  .mockup-label {
+    position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+    background: #2d2d2d; border: 1px solid #3e3e3e; border-radius: 6px;
+    padding: 8px 16px; font-size: 11px; color: #858585; z-index: 500;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mockup-label .tag {
+    background: #4ec9b0; color: #1e1e1e; padding: 1px 6px;
+    border-radius: 3px; font-size: 10px; font-weight: 600;
+  }
+
+  /* ── States ── */
+  .view { display: none; }
+  .view.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+</style>
+</head>
+<body>
+
+<!-- ═══ TopBar ═══ -->
+<div class="topbar">
+  <button class="menu-btn" onclick="toggleMenu()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="bus-selector">
+    <button class="active">Session</button>
+    <button>System</button>
+  </div>
+  <div class="window-controls">
+    <button>&#9472;</button>
+    <button>&#9633;</button>
+    <button class="close">&#10005;</button>
+  </div>
+
+  <!-- Menu Dropdown -->
+  <div class="menu-dropdown" id="menuDropdown">
+    <button>设置</button>
+    <button class="highlight" onclick="openDrawer(); closeMenu();">&#9656; 远程连接</button>
+    <button>主题</button>
+    <button>关于</button>
+  </div>
+</div>
+
+<!-- ═══ App Layout ═══ -->
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sidebar-search">
+      <input type="text" placeholder="搜索服务..." />
+    </div>
+    <div class="sidebar-content">
+      <div class="service-item selected"><span class="chevron">&#9656;</span> org.freedesktop.DBus</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> org.freedesktop.login1</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> org.freedesktop.systemd1</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> org.bluez</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> org.freedesktop.NetworkManager</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> com.deepin.daemon.Audio</div>
+      <div class="service-item"><span class="chevron">&#9656;</span> com.deepin.SessionManager</div>
+    </div>
+    <div class="sidebar-footer">7 of 42 services</div>
+  </div>
+
+  <div class="resize-handle"></div>
+
+  <div class="main-content">
+    <div class="placeholder">
+      <div class="icon">&#9881;</div>
+      <p>选择一个服务成员开始操作</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Drawer Overlay ═══ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ═══ Remote Connection Drawer ═══ -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2>&#9889; 远程连接</h2>
+    <button class="close-btn" onclick="closeDrawer()">&#10005;</button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="view active" id="viewList">
+      <div class="connection-list" id="connectionList">
+
+        <!-- Connection 1 - Connected -->
+        <div class="connection-card" data-id="1">
+          <div class="card-top">
+            <div class="card-name">
+              <span class="status-dot connected"></span>
+              生产环境 - 应用服务器
+            </div>
+            <div class="card-actions">
+              <button onclick="openEditDialog(1)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                编辑
+              </button>
+              <button class="danger" onclick="deleteConnection(1)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                删除
+              </button>
+            </div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row"><span class="detail-label">地址</span><span class="detail-value">192.168.1.100</span></div>
+            <div class="detail-row"><span class="detail-label">端口</span><span class="detail-value">22</span></div>
+            <div class="detail-row"><span class="detail-label">用户</span><span class="detail-value">admin</span></div>
+          </div>
+          <div class="card-bottom">
+            <span class="card-type">SSH</span>
+            <button class="connect-btn connected">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              已连接
+            </button>
+          </div>
+        </div>
+
+        <!-- Connection 2 - Disconnected -->
+        <div class="connection-card" data-id="2">
+          <div class="card-top">
+            <div class="card-name">
+              <span class="status-dot"></span>
+              测试环境 - 嵌入式设备
+            </div>
+            <div class="card-actions">
+              <button onclick="openEditDialog(2)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                编辑
+              </button>
+              <button class="danger" onclick="deleteConnection(2)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                删除
+              </button>
+            </div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row"><span class="detail-label">地址</span><span class="detail-value">10.0.0.55</span></div>
+            <div class="detail-row"><span class="detail-label">端口</span><span class="detail-value">22</span></div>
+            <div class="detail-row"><span class="detail-label">用户</span><span class="detail-value">root</span></div>
+          </div>
+          <div class="card-bottom">
+            <span class="card-type">SSH</span>
+            <button class="connect-btn" onclick="connectTo(2)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              连接
+            </button>
+          </div>
+        </div>
+
+        <!-- Connection 3 - Error -->
+        <div class="connection-card" data-id="3">
+          <div class="card-top">
+            <div class="card-name">
+              <span class="status-dot error"></span>
+              开发机 - 远程调试
+            </div>
+            <div class="card-actions">
+              <button onclick="openEditDialog(3)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                编辑
+              </button>
+              <button class="danger" onclick="deleteConnection(3)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                删除
+              </button>
+            </div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row"><span class="detail-label">地址</span><span class="detail-value">172.16.0.8</span></div>
+            <div class="detail-row"><span class="detail-label">端口</span><span class="detail-value">2222</span></div>
+            <div class="detail-row"><span class="detail-label">用户</span><span class="detail-value">developer</span></div>
+          </div>
+          <div class="card-bottom">
+            <span class="card-type">SSH</span>
+            <button class="connect-btn" onclick="connectTo(3)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              重试
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Button -->
+      <button class="add-connection-btn" onclick="openAddDialog()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增远程连接
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Add/Edit Dialog ═══ -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog">
+    <div class="dialog-header">
+      <h3 id="dialogTitle">新增远程连接</h3>
+      <button class="close-btn" onclick="closeDialog()">&#10005;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="form-group">
+        <label>连接名称</label>
+        <input type="text" id="connName" placeholder="例如：生产环境 - 应用服务器" />
+      </div>
+      <div class="form-group">
+        <label>连接类型</label>
+        <select id="connType">
+          <option value="ssh">SSH</option>
+          <option value="tcp">TCP</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex: 2;">
+          <label>主机地址</label>
+          <input type="text" id="connHost" placeholder="192.168.1.100" />
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label>端口</label>
+          <input type="text" id="connPort" placeholder="22" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="connUser" placeholder="root" />
+      </div>
+      <div class="form-group">
+        <label>认证方式</label>
+        <select id="connAuth">
+          <option value="key">SSH 密钥</option>
+          <option value="password">密码</option>
+        </select>
+      </div>
+      <div class="form-group" id="keyPathGroup">
+        <label>密钥路径</label>
+        <input type="text" id="connKeyPath" placeholder="~/.ssh/id_rsa" />
+        <span class="hint">留空则使用默认密钥</span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="cancel-btn" onclick="closeDialog()">取消</button>
+      <button class="save-btn" onclick="saveConnection()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Mockup Label ═══ -->
+<div class="mockup-label">
+  <span class="tag">MOCKUP</span>
+  远程连接功能 UI/UX 预览 &mdash; 点击左上角菜单中的 "远程连接" 查看效果
+</div>
+
+<script>
+  // ── Menu ──
+  function toggleMenu() {
+    document.getElementById('menuDropdown').classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('menuDropdown').classList.remove('open');
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.menu-btn') && !e.target.closest('.menu-dropdown')) {
+      closeMenu();
+    }
+  });
+
+  // ── Drawer ──
+  function openDrawer() {
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('visible');
+  }
+  function closeDrawer() {
+    document.getElementById('drawer').classList.remove('open');
+    document.getElementById('drawerOverlay').classList.remove('visible');
+  }
+
+  // ── Dialog ──
+  let editingId = null;
+
+  function openAddDialog() {
+    editingId = null;
+    document.getElementById('dialogTitle').textContent = '新增远程连接';
+    document.getElementById('connName').value = '';
+    document.getElementById('connType').value = 'ssh';
+    document.getElementById('connHost').value = '';
+    document.getElementById('connPort').value = '22';
+    document.getElementById('connUser').value = '';
+    document.getElementById('connAuth').value = 'key';
+    document.getElementById('connKeyPath').value = '';
+    document.getElementById('dialogOverlay').classList.add('visible');
+  }
+
+  function openEditDialog(id) {
+    editingId = id;
+    document.getElementById('dialogTitle').textContent = '编辑远程连接';
+    const data = {
+      1: { name: '生产环境 - 应用服务器', type: 'ssh', host: '192.168.1.100', port: '22', user: 'admin', auth: 'key', keyPath: '/home/admin/.ssh/id_rsa' },
+      2: { name: '测试环境 - 嵌入式设备', type: 'ssh', host: '10.0.0.55', port: '22', user: 'root', auth: 'password', keyPath: '' },
+      3: { name: '开发机 - 远程调试', type: 'ssh', host: '172.16.0.8', port: '2222', user: 'developer', auth: 'key', keyPath: '~/.ssh/dev_key' },
+    }[id];
+    if (data) {
+      document.getElementById('connName').value = data.name;
+      document.getElementById('connType').value = data.type;
+      document.getElementById('connHost').value = data.host;
+      document.getElementById('connPort').value = data.port;
+      document.getElementById('connUser').value = data.user;
+      document.getElementById('connAuth').value = data.auth;
+      document.getElementById('connKeyPath').value = data.keyPath;
+    }
+    document.getElementById('dialogOverlay').classList.add('visible');
+  }
+
+  function closeDialog() {
+    document.getElementById('dialogOverlay').classList.remove('visible');
+  }
+
+  function saveConnection() {
+    closeDialog();
+  }
+
+  function deleteConnection(id) {
+    const card = document.querySelector('.connection-card[data-id="' + id + '"]');
+    if (card) {
+      card.style.transition = 'all 0.25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(20px)';
+      setTimeout(function() { card.parentNode.removeChild(card); }, 250);
+    }
+  }
+
+  function connectTo(id) {
+    const card = document.querySelector('.connection-card[data-id="' + id + '"]');
+    if (card) {
+      const dot = card.querySelector('.status-dot');
+      const btn = card.querySelector('.connect-btn');
+      dot.classList.add('connected');
+      btn.classList.add('connected');
+      btn.textContent = '';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '12'); svg.setAttribute('height', '12');
+      svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('fill', 'none');
+      svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '2');
+      const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', '20 6 9 17 4 12');
+      svg.appendChild(polyline);
+      btn.appendChild(svg);
+      btn.appendChild(document.createTextNode(' 已连接'));
+    }
+  }
+
+  document.getElementById('connAuth').addEventListener('change', function() {
+    document.getElementById('keyPathGroup').style.display = this.value === 'key' ? 'flex' : 'none';
+  });
+</script>
+</body>
+</html>

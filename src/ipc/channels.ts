@@ -21,4 +21,15 @@ export const IPC_CHANNELS = {
   SUBSCRIBE_SIGNAL: 'dbus:subscribeSignal',
   UNSUBSCRIBE_SIGNAL: 'dbus:unsubscribeSignal',
   SIGNAL_RECEIVED: 'dbus:signalReceived',
+
+  // SSH Remote Connection
+  SSH_LIST_CONNECTIONS: 'ssh:listConnections',
+  SSH_CREATE_CONNECTION: 'ssh:createConnection',
+  SSH_UPDATE_CONNECTION: 'ssh:updateConnection',
+  SSH_DELETE_CONNECTION: 'ssh:deleteConnection',
+  SSH_CONNECT: 'ssh:connect',
+  SSH_DISCONNECT: 'ssh:disconnect',
+  SSH_GET_CONNECTION_STATE: 'ssh:getConnectionState',
+  SSH_GET_ALL_CONNECTION_STATES: 'ssh:getAllConnectionStates',
+  SSH_CONNECTION_STATUS: 'ssh:connectionStatus',
 } as const

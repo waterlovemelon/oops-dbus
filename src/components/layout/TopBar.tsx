@@ -7,7 +7,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Menu } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
-export function TopBar() {
+interface TopBarProps {
+  onOpenRemoteDrawer?: () => void
+}
+
+export function TopBar({ onOpenRemoteDrawer }: TopBarProps) {
   const { activeBus, setActiveBus } = useAppStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -25,7 +29,7 @@ export function TopBar() {
 
   const menuItems = [
     { label: '设置', action: () => {} },
-    { label: '远程连接', action: () => {} },
+    { label: '远程连接', action: () => onOpenRemoteDrawer?.() },
     { label: '主题', action: () => {} },
     { label: '关于', action: () => {} },
   ]
@@ -90,9 +94,13 @@ export function TopBar() {
                     item.action()
                     setMenuOpen(false)
                   }}
-                  className="w-full px-3 py-1.5 text-left text-xs text-[#cccccc] hover:bg-[#383838] transition-colors"
+                  className={`w-full px-3 py-1.5 text-left text-xs transition-colors ${
+                    item.label === '远程连接'
+                      ? 'text-[#4ec9b0] hover:bg-[#383838]'
+                      : 'text-[#cccccc] hover:bg-[#383838]'
+                  }`}
                 >
-                  {item.label}
+                  {item.label === '远程连接' ? `▶ ${item.label}` : item.label}
                 </button>
               ))}
             </div>

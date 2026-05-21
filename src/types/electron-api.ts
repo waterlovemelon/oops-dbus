@@ -1,5 +1,28 @@
 export type BusType = 'session' | 'system'
 
+// SSH Remote Connection types
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
+
+export interface RemoteConnection {
+  id: string
+  name: string
+  type: 'ssh'
+  host: string
+  port: number
+  user: string
+  authType: 'key' | 'password'
+  keyPath?: string
+  password?: string
+  busType: BusType
+  dbusSocketPath?: string
+}
+
+export interface ConnectionState {
+  id: string
+  status: ConnectionStatus
+  error?: string
+}
+
 export interface InvokeMethodParams {
   serviceName: string
   path: string
@@ -47,8 +70,8 @@ export interface ElectronAPI {
   closeWindow: () => void
   isMaximized: () => boolean
 
-  listServices: (busType: BusType) => Promise<string[]>
-  introspectServiceMembers: (serviceName: string, busType: BusType) => Promise<DbusMemberInfo[]>
+  listServices: (busType: BusType, connectionId?: string) => Promise<string[]>
+  introspectServiceMembers: (serviceName: string, busType: BusType, connectionId?: string) => Promise<DbusMemberInfo[]>
   invokeMethod: (params: InvokeMethodParams) => Promise<DbusMethodResult>
   subscribeSignal: (params: SignalSubscriptionParams) => Promise<boolean>
   unsubscribeSignal: (params: SignalSubscriptionParams) => Promise<void>
@@ -58,6 +81,18 @@ export interface ElectronAPI {
   getProperty: (params: GetPropertyParams) => Promise<DbusMethodResult>
   setProperty: (params: SetPropertyParams) => Promise<DbusMethodResult>
   getAllProperties: (params: GetAllPropertiesParams) => Promise<DbusMethodResult>
+
+  // SSH Remote Connection
+  sshListConnections: () => Promise<RemoteConnection[]>
+  sshCreateConnection: (conn: RemoteConnection) => Promise<RemoteConnection[]>
+  sshUpdateConnection: (conn: RemoteConnection) => Promise<RemoteConnection[]>
+  sshDeleteConnection: (id: string) => Promise<RemoteConnection[]>
+  sshConnect: (id: string) => Promise<ConnectionState>
+  sshDisconnect: (id: string) => Promise<ConnectionState>
+  sshGetConnectionState: (id: string) => Promise<ConnectionState | undefined>
+  sshGetAllConnectionStates: () => Promise<ConnectionState[]>
+  onSSHConnectionStatus: (callback: (state: ConnectionState) => void) => void
+  removeSSHStatusListener: () => void
 }
 
 export interface DbusArgumentInfo {

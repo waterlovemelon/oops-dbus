@@ -2,6 +2,7 @@ import { registerServiceExplorerHandlers } from './serviceExplorer'
 import { registerMethodInvokerHandlers } from './methodInvoker'
 import { registerSignalMonitorHandlers, cleanupSignalMonitor } from './signalMonitor'
 import { registerPropertyAccessorHandlers } from './propertyAccessor'
+import { registerSSHHandlers, cleanupSSH } from './ssh'
 
 /**
  * Register all IPC handlers
@@ -11,6 +12,7 @@ export function registerAllIPCHandlers() {
   registerMethodInvokerHandlers()
   registerSignalMonitorHandlers()
   registerPropertyAccessorHandlers()
+  registerSSHHandlers()
 }
 
 /**
@@ -18,6 +20,7 @@ export function registerAllIPCHandlers() {
  */
 export async function cleanupAllIPCHandlers() {
   await cleanupSignalMonitor()
+  await cleanupSSH()
 }
 
-export { cleanupSignalMonitor }
+export { cleanupSignalMonitor, cleanupSSH }

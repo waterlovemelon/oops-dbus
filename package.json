@@ -7,6 +7,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
+    "test:remote": "node test-remote.mjs",
     "build": "tsc && vite build && electron-builder",
     "build:vite": "tsc && vite build",
     "preview": "vite preview",
@@ -28,6 +29,7 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.2",
     "react-resizable-panels": "^1.0.10",
+    "ssh2": "^1.17.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^4.4.7"
