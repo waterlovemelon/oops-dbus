@@ -30,7 +30,7 @@ export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
       // Theme
-      theme: 'dark',
+      theme: 'light',
       setTheme: (theme) => set({ theme }),
 
       // Sidebar

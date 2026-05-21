@@ -70,7 +70,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
 
   if (parsedArgs.length === 0) {
     return (
-      <div className="rounded-lg border border-[#1e2028] bg-[#0f0f15] px-4 py-4 text-sm italic text-[#6b7280]">
+      <div className="rounded-lg border border-border bg-surface-0 px-4 py-4 text-sm italic text-text-2">
         No arguments required
       </div>
     )
@@ -81,7 +81,7 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
       {parsedArgs.map((arg, index) => (
         <div
           key={`${arg.type}-${index}`}
-          className="rounded-lg border border-[#1e2028] bg-[#0f0f15] p-4 transition-all"
+          className="rounded-lg border border-border bg-surface-0 p-4 transition-all"
           style={{
             animation: 'slideIn 0.3s ease-out forwards',
             animationDelay: `${index * 50}ms`,
@@ -89,16 +89,16 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
         >
           <div className="flex items-start gap-4">
             <div className="w-40 flex-shrink-0">
-              <div className="font-mono text-xs font-medium text-[#00d4ff]">
+              <div className="font-mono text-sm font-medium text-info">
                 {arg.name || `Argument ${index + 1}`}
               </div>
-              <div className="mt-1 font-mono text-xs text-[#6b7280]">
+              <div className="mt-1 font-mono text-sm text-text-2">
                 {formatDbusTypeLabel(arg.rawType)}
               </div>
             </div>
 
             <div className="flex-1">
-              <label className="mb-2 block text-xs text-[#c5c7ce]">{arg.description}</label>
+              <label className="mb-2 block text-sm text-text-1">{arg.description}</label>
 
               {arg.complexType ? (
                 <div>
@@ -106,11 +106,11 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
                     value={complexInputTexts[index] ?? ''}
                     onChange={(event) => handleComplexValueChange(index, event.target.value)}
                     disabled={disabled}
-                    className="min-h-[80px] w-full resize-y rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-xs text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[80px] w-full resize-y rounded-md border border-border bg-surface-1 px-3 py-2 font-mono text-sm text-text-0 transition-all focus:border-info focus:outline-none focus:ring-1 focus:ring-info disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder={getPlaceholderForType(arg.type)}
                     rows={3}
                   />
-                  <div className="mt-2 text-xs text-[#6b7280]">
+                  <div className="mt-2 text-sm text-text-2">
                     Enter as JSON (e.g., {getExampleForType(arg.type)})
                   </div>
                 </div>
@@ -120,13 +120,13 @@ export function ArgumentForm({ args, values, onChange, disabled }: ArgumentFormP
                   value={values[index] ?? ''}
                   onChange={(event) => handleValueChange(index, parseScalarValue(event.target.value, arg.type))}
                   disabled={disabled}
-                  className="w-full rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-2 font-mono text-xs text-[#e5e7eb] transition-all focus:border-[#00d4ff] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-md border border-border bg-surface-1 px-3 py-2 font-mono text-sm text-text-0 transition-all focus:border-info focus:outline-none focus:ring-1 focus:ring-info disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder={getPlaceholderForType(arg.type)}
                 />
               )}
 
               {validationErrors[index] && (
-                <div className="mt-2 flex items-start gap-2 text-xs text-[#ff4d6a]">
+                <div className="mt-2 flex items-start gap-2 text-sm text-error">
                   <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                   <span>{validationErrors[index]}</span>
                 </div>

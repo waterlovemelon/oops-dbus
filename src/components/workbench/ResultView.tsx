@@ -37,19 +37,19 @@ export function ResultView({ result, isInvoking }: ResultViewProps) {
 
   if (isInvoking) {
     return (
-      <div className="overflow-hidden rounded-lg border border-[#1e2028] bg-[#0f0f15]">
-        <div className="px-5 py-4 border-b border-[#1e2028]">
+      <div className="overflow-hidden rounded-lg border border-border bg-surface-0">
+        <div className="px-5 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-[#00d4ff]" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#c5c7ce]">
+            <Loader2 className="h-5 w-5 animate-spin text-info" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-text-1">
               Invoking Method...
             </h3>
           </div>
         </div>
         <div className="px-5 py-8 text-center">
-          <div className="inline-flex items-center gap-3 rounded-lg bg-[#1a1a24] px-4 py-2">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-[#00d4ff]" />
-            <span className="font-mono text-xs text-[#8b8d94]">Waiting for D-Bus response...</span>
+          <div className="inline-flex items-center gap-3 rounded-lg bg-surface-1 px-4 py-2">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-info" />
+            <span className="font-mono text-sm text-text-2">Waiting for D-Bus response...</span>
           </div>
         </div>
       </div>
@@ -58,11 +58,11 @@ export function ResultView({ result, isInvoking }: ResultViewProps) {
 
   if (!result) {
     return (
-      <div className="overflow-hidden rounded-lg border border-[#1e2028] bg-[#0f0f15]">
-        <div className="border-b border-[#1e2028] px-5 py-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-[#c5c7ce]">Result</h3>
+      <div className="overflow-hidden rounded-lg border border-border bg-surface-0">
+        <div className="border-b border-border px-5 py-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-text-1">Result</h3>
         </div>
-        <div className="px-5 py-8 text-center text-xs text-[#6b7280]">
+        <div className="px-5 py-8 text-center text-sm text-text-2">
           No result yet. Click "Invoke Method" to execute.
         </div>
       </div>
@@ -71,16 +71,16 @@ export function ResultView({ result, isInvoking }: ResultViewProps) {
 
   if (!result.success) {
     return (
-      <div className="overflow-hidden rounded-lg border border-[#ff4d6a]/30 bg-[#0f0f15]">
-        <div className="border-b border-[#ff4d6a]/30 px-5 py-4">
+      <div className="overflow-hidden rounded-lg border border-error/30 bg-surface-0">
+        <div className="border-b border-error/30 px-5 py-4">
           <div className="flex items-center gap-3">
-            <XCircle className="h-5 w-5 text-[#ff4d6a]" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#ff4d6a]">Error</h3>
+            <XCircle className="h-5 w-5 text-error" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-error">Error</h3>
           </div>
         </div>
         <div className="px-5 py-5">
-          <div className="rounded-md border border-[#ff4d6a]/20 bg-[#1a1a24] px-4 py-3">
-            <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs text-[#ff8fa3]">
+          <div className="rounded-md border border-error/20 bg-surface-1 px-4 py-3">
+            <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-sm text-error">
               {result.error || 'Unknown error'}
             </pre>
           </div>
@@ -90,16 +90,16 @@ export function ResultView({ result, isInvoking }: ResultViewProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#00ff88]/30 bg-[#0f0f15]">
-      <div className="border-b border-[#00ff88]/30 px-5 py-4">
+    <div className="overflow-hidden rounded-lg border border-success/30 bg-surface-0">
+      <div className="border-b border-success/30 px-5 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-[#00ff88]" />
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#00ff88]">Success</h3>
+            <CheckCircle2 className="h-5 w-5 text-success" />
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-success">Success</h3>
           </div>
           <button
             onClick={handleCopy}
-            className="flex items-center gap-2 rounded-md border border-[#2a2a35] bg-[#1a1a24] px-3 py-1.5 text-xs text-[#c5c7ce] transition-all hover:border-[#00d4ff] hover:bg-[#252530] hover:text-[#00d4ff]"
+            className="flex items-center gap-2 rounded-md border border-border bg-surface-1 px-3 py-1.5 text-sm text-text-1 transition-all hover:border-info hover:bg-surface-2 hover:text-info"
           >
             {copied ? (
               <>
@@ -116,16 +116,16 @@ export function ResultView({ result, isInvoking }: ResultViewProps) {
         </div>
       </div>
       <div className="px-5 py-5">
-        <div className="rounded-md border border-[#00ff88]/10 bg-[#1a1a24] px-4 py-3">
-          <pre className="max-h-[400px] overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words font-mono text-xs text-[#e5e7eb]">
+        <div className="rounded-md border border-success/10 bg-surface-1 px-4 py-3">
+          <pre className="max-h-[400px] overflow-x-auto overflow-y-auto whitespace-pre-wrap break-words font-mono text-sm text-text-0">
             {formatResult(result.value)}
           </pre>
         </div>
 
         {typeof result.value !== 'undefined' && (
-          <div className="mt-3 font-mono text-xs text-[#6b7280]">
+          <div className="mt-3 font-mono text-sm text-text-2">
             Value type:{' '}
-            <span className="text-[#00d4ff]">{Array.isArray(result.value) ? 'array' : typeof result.value}</span>
+            <span className="text-info">{Array.isArray(result.value) ? 'array' : typeof result.value}</span>
           </div>
         )}
       </div>

@@ -41,6 +41,33 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Extended semantic tokens
+        surface: {
+          0: "hsl(var(--surface0))",
+          1: "hsl(var(--surface1))",
+          2: "hsl(var(--surface2))",
+          3: "hsl(var(--surface3))",
+        },
+        text: {
+          0: "hsl(var(--text0))",
+          1: "hsl(var(--text1))",
+          2: "hsl(var(--text2))",
+          3: "hsl(var(--text3))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        error: {
+          DEFAULT: "hsl(var(--error))",
+          foreground: "hsl(var(--error-foreground))",
+        },
+        info: "hsl(var(--info))",
+        warning: "hsl(var(--warning))",
+        "code-bg": "hsl(var(--code-bg))",
+        "code-text": "hsl(var(--code-text))",
+        "selected-bg": "hsl(var(--selected-bg))",
+        "selected-text": "hsl(var(--selected-text))",
       },
       borderRadius: {
         lg: "var(--radius)",

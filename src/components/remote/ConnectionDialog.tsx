@@ -65,15 +65,15 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
   return (
     <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="w-[380px] rounded-lg border border-[#3e3e3e] bg-[#2d2d2d] shadow-2xl"
+        className="w-[380px] rounded-lg border border-border bg-surface-3 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#3e3e3e] px-4 py-3">
-          <h3 className="text-sm font-semibold text-[#cccccc]">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="text-sm font-semibold text-text-0">
             {editingConnection ? '编辑远程连接' : '新增远程连接'}
           </h3>
-          <button onClick={onClose} className="rounded p-1 text-[#858585] hover:bg-[#383838] hover:text-[#cccccc]">
+          <button onClick={onClose} className="rounded p-1 text-text-2 hover:bg-surface-2 hover:text-text-0">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -81,22 +81,22 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
         {/* Body */}
         <div className="flex flex-col gap-3.5 p-4">
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">连接名称</label>
+            <label className="text-sm uppercase tracking-wider text-text-2">连接名称</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="例如：生产环境 - 应用服务器"
-              className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+              className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">连接类型</label>
+            <label className="text-sm uppercase tracking-wider text-text-2">连接类型</label>
             <select
               value="ssh"
               disabled
-              className="cursor-pointer rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+              className="cursor-pointer rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
             >
               <option value="ssh">SSH</option>
             </select>
@@ -104,44 +104,44 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
 
           <div className="flex gap-2.5">
             <div className="flex flex-1 flex-col gap-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#858585]">主机地址</label>
+              <label className="text-sm uppercase tracking-wider text-text-2">主机地址</label>
               <input
                 type="text"
                 value={host}
                 onChange={(e) => setHost(e.target.value)}
                 placeholder="192.168.1.100"
-                className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+                className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
               />
             </div>
             <div className="flex w-20 flex-col gap-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#858585]">端口</label>
+              <label className="text-sm uppercase tracking-wider text-text-2">端口</label>
               <input
                 type="text"
                 value={port}
                 onChange={(e) => setPort(e.target.value)}
                 placeholder="22"
-                className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+                className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
               />
             </div>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">用户名</label>
+            <label className="text-sm uppercase tracking-wider text-text-2">用户名</label>
             <input
               type="text"
               value={user}
               onChange={(e) => setUser(e.target.value)}
               placeholder="root"
-              className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+              className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">认证方式</label>
+            <label className="text-sm uppercase tracking-wider text-text-2">认证方式</label>
             <select
               value={authType}
               onChange={(e) => setAuthType(e.target.value as 'key' | 'password')}
-              className="cursor-pointer rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+              className="cursor-pointer rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
             >
               <option value="key">SSH 密钥</option>
               <option value="password">密码</option>
@@ -150,56 +150,56 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
 
           {authType === 'key' && (
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#858585]">密钥路径</label>
+              <label className="text-sm uppercase tracking-wider text-text-2">密钥路径</label>
               <input
                 type="text"
                 value={keyPath}
                 onChange={(e) => setKeyPath(e.target.value)}
                 placeholder="~/.ssh/id_rsa"
-                className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+                className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
               />
-              <span className="text-[10px] text-[#6b7280]">留空则使用默认密钥</span>
+              <span className="text-[11px] text-text-2">留空则使用默认密钥</span>
             </div>
           )}
 
           {authType === 'password' && (
             <div className="flex flex-col gap-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#858585]">密码</label>
+              <label className="text-sm uppercase tracking-wider text-text-2">密码</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="输入密码"
-                className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+                className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
               />
             </div>
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">D-Bus Socket 路径 (可选)</label>
+            <label className="text-sm uppercase tracking-wider text-text-2">D-Bus Socket 路径 (可选)</label>
             <input
               type="text"
               value={dbusSocketPath}
               onChange={(e) => setDbusSocketPath(e.target.value)}
               placeholder="自动检测"
-              className="rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
+              className="rounded border border-border bg-surface-0 px-2.5 py-2 font-mono text-sm text-text-0 outline-none focus:border-info"
             />
-            <span className="text-[10px] text-[#6b7280]">留空则自动检测远程 D-Bus socket</span>
+            <span className="text-[11px] text-text-2">留空则自动检测远程 D-Bus socket</span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 border-t border-[#3e3e3e] px-4 py-3">
+        <div className="flex justify-end gap-2 border-t border-border px-4 py-3">
           <button
             onClick={onClose}
-            className="rounded bg-[#3e3e3e] px-4 py-1.5 text-xs text-[#cccccc] hover:bg-[#4e4e4e]"
+            className="rounded bg-surface-2 px-4 py-1.5 text-sm text-text-0 hover:bg-surface-3"
           >
             取消
           </button>
           <button
             onClick={handleSave}
             disabled={!host || !user}
-            className="rounded bg-[#0e639c] px-4 py-1.5 text-xs text-white hover:bg-[#1177bb] disabled:opacity-50"
+            className="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
             保存
           </button>

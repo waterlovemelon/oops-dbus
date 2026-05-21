@@ -55,14 +55,14 @@ export function RemoteDrawer({ open, onClose }: RemoteDrawerProps) {
       <div className="fixed inset-0 z-[300] bg-black/40 transition-opacity" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed bottom-0 right-0 top-[36px] z-[301] flex w-[420px] flex-col border-l border-[#3e3e3e] bg-[#252526] shadow-[-8px_0_32px_rgba(0,0,0,0.3)]">
+      <div className="fixed bottom-0 right-0 top-[36px] z-[301] flex w-[420px] flex-col border-l border-border bg-surface-1 shadow-[-8px_0_32px_rgba(0,0,0,0.15)]">
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-[#3e3e3e] px-4 py-3">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-[#cccccc]">
-            <Zap className="h-4 w-4 text-[#4ec9b0]" />
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-text-0">
+            <Zap className="h-4 w-4 text-success" />
             远程连接
           </h2>
-          <button onClick={onClose} className="rounded p-1 text-[#858585] hover:bg-[#383838] hover:text-[#cccccc]">
+          <button onClick={onClose} className="rounded p-1 text-text-2 hover:bg-surface-2 hover:text-text-0">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -85,7 +85,7 @@ export function RemoteDrawer({ open, onClose }: RemoteDrawerProps) {
             {/* Add button */}
             <button
               onClick={handleAddNew}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-[#3e3e3e] px-2.5 py-2.5 text-xs text-[#858585] transition-all hover:border-[#4ec9b0] hover:text-[#4ec9b0] hover:bg-[#4ec9b0]/5"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-dashed border-border px-2.5 py-2.5 text-sm text-text-2 transition-all hover:border-success hover:text-success hover:bg-success/5"
             >
               <Plus className="h-3.5 w-3.5" />
               新增远程连接
