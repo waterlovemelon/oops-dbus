@@ -43,4 +43,20 @@ export function registerServiceExplorerHandlers() {
       }
     }
   )
+
+  // Get service info (unique name, PID, process command)
+  ipcMain.handle(
+    'dbus:getServiceInfo',
+    async (_event, serviceName: string, busType: BusType, connectionId?: string) => {
+      try {
+        if (connectionId) {
+          return await getRemoteExplorer().getServiceInfo(connectionId, serviceName, busType)
+        }
+        return await serviceExplorer.getServiceInfo(serviceName, busType)
+      } catch (error: any) {
+        console.error('Failed to get service info:', error)
+        throw error
+      }
+    }
+  )
 }

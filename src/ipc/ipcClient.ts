@@ -12,6 +12,7 @@ import type {
   GetPropertyParams,
   InvokeMethodParams,
   RemoteConnection,
+  ServiceInfo,
   SetPropertyParams,
   SignalEvent,
   SignalSubscriptionParams,
@@ -56,6 +57,15 @@ export const ipcClient = {
     } catch (error) {
       console.error('Failed to introspect service:', error)
       throw new Error(`Failed to introspect service ${serviceName}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  },
+
+  getServiceInfo: async (serviceName: string, busType: BusType, connectionId?: string): Promise<ServiceInfo> => {
+    try {
+      return await window.electronAPI.getServiceInfo(serviceName, busType, connectionId)
+    } catch (error) {
+      console.error('Failed to get service info:', error)
+      return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
     }
   },
 

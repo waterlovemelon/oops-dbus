@@ -15,6 +15,8 @@ export interface TreeNode {
   type: 'service' | 'path' | 'interface' | 'category' | 'member'
   children?: TreeNode[]
   member?: DbusMemberInfo
+  /** For interface nodes: the object path this interface belongs to */
+  path?: string
 }
 
 interface AppStore {

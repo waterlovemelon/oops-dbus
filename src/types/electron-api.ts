@@ -75,6 +75,7 @@ export interface ElectronAPI {
 
   listServices: (busType: BusType, connectionId?: string) => Promise<string[]>
   introspectServiceMembers: (serviceName: string, busType: BusType, connectionId?: string) => Promise<DbusMemberInfo[]>
+  getServiceInfo: (serviceName: string, busType: BusType, connectionId?: string) => Promise<ServiceInfo>
   invokeMethod: (params: InvokeMethodParams) => Promise<DbusMethodResult>
   subscribeSignal: (params: SignalSubscriptionParams) => Promise<boolean>
   unsubscribeSignal: (params: SignalSubscriptionParams) => Promise<void>
@@ -130,6 +131,14 @@ export interface DbusMethodResult {
   success: boolean
   value?: any
   error?: string
+}
+
+export interface ServiceInfo {
+  serviceName: string
+  uniqueName: string | null
+  pid: number | null
+  processCmd: string | null
+  isActive: boolean
 }
 
 export interface SignalEvent {

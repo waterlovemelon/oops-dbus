@@ -46,6 +46,8 @@ export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
     }
     if (node.type === 'member' && node.member) {
       onSelect(node)
+    } else if (node.type === 'path' || node.type === 'interface') {
+      onSelect(node)
     }
   }
 

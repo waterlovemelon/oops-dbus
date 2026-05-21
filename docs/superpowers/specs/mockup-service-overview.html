@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServiceOverviewPane Mockup</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f6f8fa;
+    --bg-tertiary: #eef1f5;
+    --border: #d1d9e0;
+    --border-light: #e8ecf0;
+    --text-primary: #1f2328;
+    --text-secondary: #59636e;
+    --text-tertiary: #8b949e;
+    --accent: #0969da;
+    --accent-light: #ddf4ff;
+    --green: #1a7f37;
+    --green-bg: #dafbe1;
+    --purple: #8250df;
+    --purple-bg: #fbefff;
+    --orange: #bc4c00;
+    --orange-bg: #fff8c5;
+    --cyan: #0550ae;
+    --cyan-bg: #ddf4ff;
+    --radius: 8px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(31,35,40,0.04), 0 1px 2px rgba(31,35,40,0.06);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    padding: 24px;
+  }
+
+  .mockup-container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .mockup-label {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Header bar */
+  .pane-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.15s;
+  }
+  .back-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+  .pane-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .bus-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    margin-top: 24px;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  /* Card */
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  /* Metadata card */
+  .metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .meta-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+    border-right: 1px solid var(--border-light);
+  }
+  .meta-item:nth-child(2n) { border-right: none; }
+  .meta-item:nth-last-child(-n+2) { border-bottom: none; }
+
+  .meta-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+  }
+
+  .meta-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  .meta-value.process {
+    font-family: inherit;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .stat-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .stat-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .stat-icon.method { background: var(--orange-bg); color: var(--orange); }
+  .stat-icon.signal { background: var(--purple-bg); color: var(--purple); }
+  .stat-icon.property { background: var(--cyan-bg); color: var(--cyan); }
+  .stat-icon.path { background: var(--green-bg); color: var(--green); }
+
+  .stat-count { font-weight: 600; color: var(--text-primary); }
+
+  /* Command cards */
+  .cmd-card {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+
+  .cmd-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .cmd-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cmd-card-title .scope-badge {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+  }
+
+  .cmd-card-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-sm:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .btn-sm.primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-sm.primary:hover { opacity: 0.9; }
+
+  .cmd-body {
+    padding: 0;
+  }
+
+  .cmd-line {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    transition: background 0.1s;
+  }
+  .cmd-line:last-child { border-bottom: none; }
+  .cmd-line:hover { background: var(--bg-secondary); }
+
+  .cmd-tool {
+    display: inline-block;
+    min-width: 100px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .cmd-args {
+    color: var(--text-secondary);
+    flex: 1;
+  }
+
+  .cmd-args .highlight {
+    color: var(--purple);
+    font-weight: 500;
+  }
+
+  .cmd-copy-btn {
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: all 0.15s;
+    margin-left: 8px;
+  }
+  .cmd-line:hover .cmd-copy-btn { opacity: 1; }
+  .cmd-copy-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+  /* Path navigation */
+  .path-list {
+    list-style: none;
+  }
+
+  .path-item {
+    border-bottom: 1px solid var(--border-light);
+  }
+  .path-item:last-child { border-bottom: none; }
+
+  .path-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+  .path-header:hover { background: var(--bg-secondary); }
+
+  .path-chevron {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    transition: transform 0.2s;
+    width: 12px;
+    text-align: center;
+  }
+  .path-chevron.open { transform: rotate(90deg); }
+
+  .path-icon {
+    font-size: 12px;
+    color: var(--green);
+  }
+
+  .path-name {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .path-count {
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  .path-children {
+    padding: 0 16px 10px 44px;
+    display: none;
+  }
+  .path-children.open { display: block; }
+
+  .iface-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    margin: 2px 4px 2px 0;
+    font-size: 11px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .iface-tag:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .iface-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .metadata-grid { grid-template-columns: 1fr; }
+    .meta-item { border-right: none; }
+    .stats-bar { flex-wrap: wrap; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mockup-container">
+  <div class="mockup-label">ServiceOverviewPane Mockup</div>
+
+  <!-- Header -->
+  <div class="pane-header">
+    <button class="back-btn" title="返回">&#8592;</button>
+    <span class="pane-title">org.freedesktop.systemd1</span>
+    <span class="bus-badge">System Bus</span>
+  </div>
+
+  <!-- Section 1: Metadata -->
+  <div class="section-title">Service Information</div>
+  <div class="card">
+    <div class="metadata-grid">
+      <div class="meta-item">
+        <div class="meta-label">Service Name</div>
+        <div class="meta-value">org.freedesktop.systemd1</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Unique Name</div>
+        <div class="meta-value">:1.42</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Owning Process</div>
+        <div class="meta-value process">systemd <span style="color:var(--text-tertiary); font-size:12px;">(PID 1)</span></div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Bus Type</div>
+        <div class="meta-value process">system</div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-chip">
+        <span class="stat-icon path">&#9679;</span>
+        <span class="stat-count">12</span> Paths
+      </div>
+      <div class="stat-chip">
+        <span class="stat-icon method">&#9889;</span>
+        <span class="stat-count">15</span> Methods
+      </div>
+      <div class="stat-chip">
+        <span class="stat-icon signal">&#9672;</span>
+        <span class="stat-count">3</span> Signals
+      </div>
+      <div class="stat-chip">
+        <span class="stat-icon property">&#9881;</span>
+        <span class="stat-count">6</span> Properties
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Monitoring Commands -->
+  <div class="section-title">Monitoring Commands</div>
+
+  <!-- Service-level monitoring -->
+  <div class="cmd-card">
+    <div class="cmd-card-header">
+      <div class="cmd-card-title">
+        Monitor Service
+        <span class="scope-badge">service-level</span>
+      </div>
+      <div class="cmd-card-actions">
+        <button class="btn-sm">&#128203; Copy All</button>
+        <button class="btn-sm primary">&#128194; Open Terminal</button>
+      </div>
+    </div>
+    <div class="cmd-body">
+      <div class="cmd-line">
+        <span class="cmd-tool">busctl</span>
+        <span class="cmd-args">monitor <span class="highlight">org.freedesktop.systemd1</span></span>
+        <button class="cmd-copy-btn" title="Copy">&#128203;</button>
+      </div>
+      <div class="cmd-line">
+        <span class="cmd-tool">dbus-monitor</span>
+        <span class="cmd-args">"destination='org.freedesktop.systemd1',type='method_call'"</span>
+        <button class="cmd-copy-btn" title="Copy">&#128203;</button>
+      </div>
+      <div class="cmd-line">
+        <span class="cmd-tool">gdbus</span>
+        <span class="cmd-args">monitor --system --dest <span class="highlight">org.freedesktop.systemd1</span></span>
+        <button class="cmd-copy-btn" title="Copy">&#128203;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Process-level monitoring -->
+  <div class="cmd-card">
+    <div class="cmd-card-header">
+      <div class="cmd-card-title">
+        Monitor Process
+        <span class="scope-badge">process-level</span>
+      </div>
+      <div class="cmd-card-actions">
+        <button class="btn-sm">&#128203; Copy All</button>
+        <button class="btn-sm primary">&#128194; Open Terminal</button>
+      </div>
+    </div>
+    <div class="cmd-body">
+      <div class="cmd-line">
+        <span class="cmd-tool">busctl</span>
+        <span class="cmd-args">monitor --unique-name=<span class="highlight">:1.42</span></span>
+        <button class="cmd-copy-btn" title="Copy">&#128203;</button>
+      </div>
+      <div class="cmd-line">
+        <span class="cmd-tool">dbus-monitor</span>
+        <span class="cmd-args">"sender=':1.42' OR destination=':1.42'"</span>
+        <button class="cmd-copy-btn" title="Copy">&#128203;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: Path Navigation -->
+  <div class="section-title">Object Paths</div>
+  <div class="card">
+    <ul class="path-list">
+      <!-- Path 1: expanded -->
+      <li class="path-item">
+        <div class="path-header" onclick="this.querySelector('.path-chevron').classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+          <span class="path-chevron open">&#9654;</span>
+          <span class="path-icon">&#128193;</span>
+          <span class="path-name">/org/freedesktop/systemd1</span>
+          <span class="path-count">3 interfaces</span>
+        </div>
+        <div class="path-children open">
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.systemd1.Manager</span>
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.systemd1.Unit</span>
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.DBus.Properties</span>
+        </div>
+      </li>
+
+      <!-- Path 2: collapsed -->
+      <li class="path-item">
+        <div class="path-header" onclick="this.querySelector('.path-chevron').classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+          <span class="path-chevron">&#9654;</span>
+          <span class="path-icon">&#128193;</span>
+          <span class="path-name">/org/freedesktop/systemd1/unit</span>
+          <span class="path-count">2 interfaces</span>
+        </div>
+        <div class="path-children">
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.systemd1.Service</span>
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.DBus.Properties</span>
+        </div>
+      </li>
+
+      <!-- Path 3: collapsed -->
+      <li class="path-item">
+        <div class="path-header" onclick="this.querySelector('.path-chevron').classList.toggle('open'); this.nextElementSibling.classList.toggle('open');">
+          <span class="path-chevron">&#9654;</span>
+          <span class="path-icon">&#128193;</span>
+          <span class="path-name">/org/freedesktop/systemd1/job</span>
+          <span class="path-count">1 interface</span>
+        </div>
+        <div class="path-children">
+          <span class="iface-tag"><span class="iface-dot"></span> org.freedesktop.systemd1.Job</span>
+        </div>
+      </li>
+
+      <!-- More paths indicator -->
+      <li class="path-item">
+        <div class="path-header" style="justify-content: center; cursor: default;">
+          <span style="font-size: 12px; color: var(--text-tertiary);">+ 9 more paths</span>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

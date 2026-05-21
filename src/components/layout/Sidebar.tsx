@@ -11,7 +11,7 @@ import { useAppStore } from '../../stores/appStore'
 import { useConnectionStore } from '../../stores/connectionStore'
 import { ipcClient } from '../../ipc/ipcClient'
 import { buildServiceTree } from '../../lib/buildTree'
-import type { BusType, DbusMemberInfo } from '../../types/electron-api'
+import type { BusType, DbusMemberInfo, ServiceInfo } from '../../types/electron-api'
 import { useQuery } from '@tanstack/react-query'
 
 let statusListenerInitialized = false
@@ -19,6 +19,8 @@ let statusListenerInitialized = false
 interface RemoteSourceState {
   sessionServices: string[]
   systemServices: string[]
+  sessionServiceInfoMap: Record<string, ServiceInfo>
+  systemServiceInfoMap: Record<string, ServiceInfo>
   expandedService: string | null
   expandedBusType: BusType | null
   members: DbusMemberInfo[]
@@ -67,6 +69,49 @@ export function Sidebar() {
     refetchOnWindowFocus: false,
   })
 
+  // Fetch service info (unique name, pid, process cmd) for all visible services
+  const { data: localSessionServiceInfoMap = {} as Record<string, ServiceInfo> } = useQuery({
+    queryKey: ['serviceInfoMap', 'session', localSessionServices],
+    queryFn: async () => {
+      const results = await Promise.all(
+        localSessionServices.map(async (name) => {
+          try {
+            const info = await ipcClient.getServiceInfo(name, 'session')
+            return [name, info] as const
+          } catch {
+            return [name, { serviceName: name, uniqueName: null, pid: null, processCmd: null, isActive: false }] as const
+          }
+        }),
+      )
+      return Object.fromEntries(results) as Record<string, ServiceInfo>
+    },
+    enabled: localSessionServices.length > 0,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+  })
+  const { data: localSystemServiceInfoMap = {} as Record<string, ServiceInfo> } = useQuery({
+    queryKey: ['serviceInfoMap', 'system', localSystemServices],
+    queryFn: async () => {
+      const results = await Promise.all(
+        localSystemServices.map(async (name) => {
+          try {
+            const info = await ipcClient.getServiceInfo(name, 'system')
+            return [name, info] as const
+          } catch {
+            return [name, { serviceName: name, uniqueName: null, pid: null, processCmd: null, isActive: false }] as const
+          }
+        }),
+      )
+      return Object.fromEntries(results) as Record<string, ServiceInfo>
+    },
+    enabled: localSystemServices.length > 0,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+  })
+  const localServiceInfoMaps = { session: localSessionServiceInfoMap, system: localSystemServiceInfoMap }
+  const getServiceInfoLocal = (serviceName: string, busType: BusType) =>
+    localServiceInfoMaps[busType]?.[serviceName] ?? null
+
   const [localExpandedService, setLocalExpandedService] = useState<string | null>(null)
   const [localExpandedBusType, setLocalExpandedBusType] = useState<BusType | null>(null)
   const { data: localMembers = [], isLoading: isLoadingLocalMembers } = useQuery({
@@ -85,6 +130,8 @@ export function Sidebar() {
         ...prev[connId],
         sessionServices: prev[connId]?.sessionServices || [],
         systemServices: prev[connId]?.systemServices || [],
+        sessionServiceInfoMap: prev[connId]?.sessionServiceInfoMap || {},
+        systemServiceInfoMap: prev[connId]?.systemServiceInfoMap || {},
         expandedService: prev[connId]?.expandedService || null,
         expandedBusType: prev[connId]?.expandedBusType || null,
         members: prev[connId]?.members || [],
@@ -114,12 +161,43 @@ export function Sidebar() {
         ...prev[connId],
         sessionServices,
         systemServices,
+        sessionServiceInfoMap: prev[connId]?.sessionServiceInfoMap || {},
+        systemServiceInfoMap: prev[connId]?.systemServiceInfoMap || {},
         expandedService: prev[connId]?.expandedService || null,
         expandedBusType: prev[connId]?.expandedBusType || null,
         members: prev[connId]?.members || [],
         isLoadingSession: false,
         isLoadingSystem: false,
         isLoadingMembers: false,
+      },
+    }))
+
+    // Fetch service info in the background
+    const fetchServiceInfo = async (services: string[], busType: BusType) => {
+      const entries = await Promise.all(
+        services.map(async (name) => {
+          try {
+            const info = await ipcClient.getServiceInfo(name, busType, connId)
+            return [name, info] as const
+          } catch {
+            return [name, { serviceName: name, uniqueName: null, pid: null, processCmd: null, isActive: false }] as const
+          }
+        }),
+      )
+      return Object.fromEntries(entries) as Record<string, ServiceInfo>
+    }
+
+    const [sessionInfoMap, systemInfoMap] = await Promise.all([
+      fetchServiceInfo(sessionServices, 'session'),
+      fetchServiceInfo(systemServices, 'system'),
+    ])
+
+    setRemoteStates((prev) => ({
+      ...prev,
+      [connId]: {
+        ...prev[connId],
+        sessionServiceInfoMap: sessionInfoMap,
+        systemServiceInfoMap: systemInfoMap,
       },
     }))
   }, [])
@@ -217,6 +295,7 @@ export function Sidebar() {
     isLoadingServices: boolean,
     isLoadingMembers: boolean,
     onToggleService: (serviceName: string) => void,
+    getServiceInfo?: (serviceName: string) => ServiceInfo | null,
     statusIcon?: React.ReactNode,
   ) => {
     const filtered = filterServices(services)
@@ -244,12 +323,13 @@ export function Sidebar() {
               const isExpanded = expandedService === service
               const isSelected = selectedServiceName === service
               const treeNodes = isExpanded ? buildServiceTree(members, service) : []
+              const info = getServiceInfo?.(service)
 
               return (
                 <div key={service}>
                   <button
                     onClick={() => onToggleService(service)}
-                    className={`flex w-full items-center gap-1 rounded px-2 py-1 text-left text-base transition-colors ${
+                    className={`flex w-full items-start gap-1 rounded px-2 py-1 text-left transition-colors ${
                       isSelected && !isExpanded
                         ? 'bg-selected-bg text-selected-text'
                         : isExpanded
@@ -258,9 +338,28 @@ export function Sidebar() {
                     }`}
                   >
                     <ChevronRight
-                      className={`h-3 w-3 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                      className={`mt-1 h-3 w-3 shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
                     />
-                    <span className="truncate font-mono">{service}</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate font-mono text-base">{service}</span>
+                      {info && (
+                        <div className="mt-0.5 flex items-center gap-1 overflow-hidden">
+                          <span
+                            className={`inline-block h-[5px] w-[5px] shrink-0 rounded-full ${
+                              info.isActive ? 'bg-green-500' : 'bg-gray-400'
+                            }`}
+                          />
+                          {info.isActive ? (
+                            <span className="truncate text-[11px] text-text-2">
+                              {info.uniqueName}
+                              {info.processCmd && ` · ${info.processCmd}`}
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-text-3">inactive</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </button>
 
                   {isExpanded && (
@@ -411,6 +510,7 @@ export function Sidebar() {
                 isLoadingLocalSession,
                 localExpandedBusType === 'session' ? isLoadingLocalMembers : false,
                 (serviceName) => handleToggleLocalService(serviceName, 'session'),
+                (serviceName) => getServiceInfoLocal(serviceName, 'session'),
               )}
               {(busFilter === 'all' || busFilter === 'system') && renderServiceGroup(
                 'System',
@@ -420,6 +520,7 @@ export function Sidebar() {
                 isLoadingLocalSystem,
                 localExpandedBusType === 'system' ? isLoadingLocalMembers : false,
                 (serviceName) => handleToggleLocalService(serviceName, 'system'),
+                (serviceName) => getServiceInfoLocal(serviceName, 'system'),
               )}
             </>
           ) : (
@@ -433,6 +534,7 @@ export function Sidebar() {
                 remoteState?.isLoadingSession ?? true,
                 remoteState?.expandedBusType === 'session' ? (remoteState?.isLoadingMembers ?? false) : false,
                 (serviceName) => activeConn && handleToggleRemoteService(activeConn.id, serviceName, 'session'),
+                (serviceName) => remoteState?.sessionServiceInfoMap?.[serviceName] ?? null,
                 <Wifi className="h-3 w-3 text-success" />,
               )}
               {(busFilter === 'all' || busFilter === 'system') && renderServiceGroup(
@@ -443,6 +545,7 @@ export function Sidebar() {
                 remoteState?.isLoadingSystem ?? true,
                 remoteState?.expandedBusType === 'system' ? (remoteState?.isLoadingMembers ?? false) : false,
                 (serviceName) => activeConn && handleToggleRemoteService(activeConn.id, serviceName, 'system'),
+                (serviceName) => remoteState?.systemServiceInfoMap?.[serviceName] ?? null,
                 <Wifi className="h-3 w-3 text-[#c586c0]" />,
               )}
             </>

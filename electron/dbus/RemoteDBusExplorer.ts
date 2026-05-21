@@ -1,5 +1,5 @@
 import type { TunnelManager } from '../ssh/TunnelManager'
-import type { DbusMemberInfo, DbusArgumentInfo } from './types'
+import type { DbusMemberInfo, DbusArgumentInfo, ServiceInfo } from './types'
 
 export class RemoteDBusExplorer {
   constructor(private tunnelManager: TunnelManager) {}
@@ -14,6 +14,49 @@ export class RemoteDBusExplorer {
 
     const names = match[1].split(',').map(s => s.trim().replace(/^'|'$/g, '').replace(/^"|"$/g, ''))
     return names.filter(n => n && !n.startsWith(':')).sort()
+  }
+
+  async getServiceInfo(connectionId: string, serviceName: string, busType: 'session' | 'system'): Promise<ServiceInfo> {
+    const busFlag = busType === 'system' ? '--system' : '--session'
+
+    // Get unique name
+    let uniqueName: string | null = null
+    try {
+      const cmd = `gdbus call ${busFlag} --dest org.freedesktop.DBus --object-path /org/freedesktop/DBus --method org.freedesktop.DBus.GetNameOwner '${serviceName}'`
+      const output = await this.tunnelManager.runCommand(connectionId, cmd)
+      const match = output.match(/\('([^']+)'/)
+      if (match) uniqueName = match[1]
+    } catch {
+      // Not active
+    }
+
+    if (!uniqueName) {
+      return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
+    }
+
+    // Get PID
+    let pid: number | null = null
+    try {
+      const cmd = `gdbus call ${busFlag} --dest org.freedesktop.DBus --object-path /org/freedesktop/DBus --method org.freedesktop.DBus.GetConnectionUnixProcessID '${uniqueName}'`
+      const output = await this.tunnelManager.runCommand(connectionId, cmd)
+      const match = output.match(/\((\d+)\)/)
+      if (match) pid = parseInt(match[1], 10)
+    } catch {
+      // PID not available
+    }
+
+    // Read process command
+    let processCmd: string | null = null
+    if (pid) {
+      try {
+        const cmd = `cat /proc/${pid}/cmdline | tr '\\0' ' '`
+        processCmd = (await this.tunnelManager.runCommand(connectionId, cmd)).trim()
+      } catch {
+        // Process may have exited
+      }
+    }
+
+    return { serviceName, uniqueName, pid, processCmd, isActive: true }
   }
 
   async introspectServiceMembers(connectionId: string, serviceName: string, busType: 'session' | 'system'): Promise<DbusMemberInfo[]> {

@@ -9,12 +9,22 @@ import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
 import { MethodPane } from '../workbench/MethodPane'
 import { PropertyPane } from '../property/PropertyPane'
+import { SignalPane } from '../signal/SignalPane'
+import { ServiceOverviewPane } from '../service/ServiceOverviewPane'
+import { PathPane } from '../service/PathPane'
+import { InterfacePane } from '../service/InterfacePane'
 import { RemoteDrawer } from '../remote/RemoteDrawer'
 import { useAppStore } from '../../stores/appStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 
 export function AppShell() {
-  const { selectedNode, activeBus, activeConnectionId, clearSelectedMember } = useAppStore()
+  const {
+    selectedNode,
+    selectedServiceName,
+    activeBus,
+    activeConnectionId,
+    clearSelectedMember,
+  } = useAppStore()
   const theme = useSettingsStore((s) => s.theme)
   const [remoteDrawerOpen, setRemoteDrawerOpen] = useState(false)
 
@@ -22,11 +32,92 @@ export function AppShell() {
     document.documentElement.classList.toggle('dark', theme === 'dark')
   }, [theme])
 
-  const selectedMethod = selectedNode?.member?.type === 'method' ? selectedNode.member : null
-  const selectedProperty = selectedNode?.member?.type === 'property' ? selectedNode.member : null
-
-  const handleBackFromMember = () => {
+  const handleBack = () => {
     clearSelectedMember()
+  }
+
+  // Determine which pane to render
+  const renderContent = () => {
+    // A member is selected
+    if (selectedNode?.type === 'member' && selectedNode.member) {
+      const member = selectedNode.member
+
+      switch (member.type) {
+        case 'method':
+          return (
+            <MethodPane
+              member={member}
+              busType={activeBus}
+              connectionId={activeConnectionId}
+              onBack={handleBack}
+            />
+          )
+        case 'signal':
+          return (
+            <SignalPane
+              member={member}
+              busType={activeBus}
+              connectionId={activeConnectionId}
+              onBack={handleBack}
+            />
+          )
+        case 'property':
+          return (
+            <PropertyPane
+              member={member}
+              busType={activeBus}
+              connectionId={activeConnectionId}
+              onBack={handleBack}
+            />
+          )
+      }
+    }
+
+    // A path node is selected
+    if (selectedNode?.type === 'path') {
+      return (
+        <PathPane
+          path={selectedNode.label}
+          serviceName={selectedServiceName ?? ''}
+          busType={activeBus}
+          onBack={handleBack}
+        />
+      )
+    }
+
+    // An interface node is selected
+    if (selectedNode?.type === 'interface') {
+      return (
+        <InterfacePane
+          interfaceName={selectedNode.label}
+          path={selectedNode.path ?? '/'}
+          serviceName={selectedServiceName ?? ''}
+          busType={activeBus}
+          onBack={handleBack}
+        />
+      )
+    }
+
+    // A service is selected (but no specific member)
+    if (selectedServiceName) {
+      return (
+        <ServiceOverviewPane
+          serviceName={selectedServiceName}
+          busType={activeBus}
+          connectionId={activeConnectionId}
+        />
+      )
+    }
+
+    // Nothing selected
+    return (
+      <div className="flex h-full items-center justify-center bg-muted/30">
+        <div className="text-center">
+          <h2 className="text-xl font-bold">D-Bus Workbench</h2>
+          <p className="mt-2 text-muted-foreground">Select a service to explore</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -47,63 +138,7 @@ export function AppShell() {
 
           {/* Main Content Area */}
           <Panel defaultSize={60} minSize={30}>
-            {selectedMethod ? (
-              <MethodPane
-                member={selectedMethod}
-                busType={activeBus}
-                connectionId={activeConnectionId}
-                onBack={handleBackFromMember}
-              />
-            ) : selectedProperty ? (
-              <PropertyPane
-                member={selectedProperty}
-                busType={activeBus}
-                connectionId={activeConnectionId}
-                onBack={handleBackFromMember}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center bg-muted/30">
-                {selectedNode ? (
-                  <div className="text-center">
-                    <h2 className="text-base font-bold">{selectedNode.label}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {selectedNode.type === 'member' && selectedNode.member
-                        ? `${selectedNode.member.interfaceName} - ${selectedNode.member.type}`
-                        : selectedNode.type}
-                    </p>
-                    {selectedNode.member && (
-                      <div className="mt-4 rounded bg-background p-4 text-left">
-                        <div className="space-y-2 text-xs">
-                          <div>
-                            <span className="font-medium">Path:</span>{' '}
-                            {selectedNode.member.path}
-                          </div>
-                          <div>
-                            <span className="font-medium">Interface:</span>{' '}
-                            {selectedNode.member.interfaceName}
-                          </div>
-                          <div>
-                            <span className="font-medium">Signature:</span>{' '}
-                            {selectedNode.member.signature}
-                          </div>
-                          <div>
-                            <span className="font-medium">Return:</span>{' '}
-                            {selectedNode.member.returnType}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <h2 className="text-xl font-bold">D-Bus Workbench</h2>
-                    <p className="mt-2 text-muted-foreground">
-                      Select a service to explore
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+            {renderContent()}
           </Panel>
         </PanelGroup>
       </div>

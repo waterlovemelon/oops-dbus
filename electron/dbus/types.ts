@@ -44,3 +44,11 @@ export interface SignalEvent {
 }
 
 export type BusType = 'session' | 'system'
+
+export interface ServiceInfo {
+  serviceName: string
+  uniqueName: string | null
+  pid: number | null
+  processCmd: string | null
+  isActive: boolean
+}

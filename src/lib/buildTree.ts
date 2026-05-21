@@ -11,6 +11,8 @@ export interface TreeNode {
   type: 'service' | 'path' | 'interface' | 'member'
   children?: TreeNode[]
   member?: DbusMemberInfo
+  /** For interface nodes: the object path this interface belongs to */
+  path?: string
 }
 
 /**
@@ -56,6 +58,7 @@ export function buildServiceTree(members: DbusMemberInfo[], _serviceName: string
         label: interfaceName,
         type: 'interface',
         children: [],
+        path,
       }
 
       // Add members directly under interface, sorted by type then name

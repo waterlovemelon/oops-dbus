@@ -1,5 +1,6 @@
 import { Message, MessageType, sessionBus, systemBus } from 'dbus-next'
-import type { BusType, DbusMemberInfo, DbusInterfaceInfo, DbusArgumentInfo } from './types'
+import { readFileSync } from 'fs'
+import type { BusType, DbusMemberInfo, DbusInterfaceInfo, DbusArgumentInfo, ServiceInfo } from './types'
 
 /**
  * ServiceExplorer - Discover and introspect D-Bus services
@@ -40,6 +41,71 @@ export class ServiceExplorer {
         .sort()
 
       return services
+    } finally {
+      bus.disconnect()
+    }
+  }
+
+  /**
+   * Get detailed info about a service: unique name, PID, process command
+   */
+  async getServiceInfo(serviceName: string, busType: BusType): Promise<ServiceInfo> {
+    const bus = this.getBus(busType)
+
+    try {
+      // Get unique name via GetNameOwner
+      let uniqueName: string | null = null
+      try {
+        const nameOwnerReply = await bus.call(new Message({
+          type: MessageType.METHOD_CALL,
+          destination: 'org.freedesktop.DBus',
+          path: '/org/freedesktop/DBus',
+          interface: 'org.freedesktop.DBus',
+          member: 'GetNameOwner',
+          body: [serviceName],
+        }))
+        if (nameOwnerReply.type === MessageType.METHOD_RETURN) {
+          uniqueName = nameOwnerReply.body[0]
+        }
+      } catch {
+        // Service not active
+      }
+
+      if (!uniqueName) {
+        return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
+      }
+
+      // Get PID via GetConnectionUnixProcessID
+      let pid: number | null = null
+      try {
+        const pidReply = await bus.call(new Message({
+          type: MessageType.METHOD_CALL,
+          destination: 'org.freedesktop.DBus',
+          path: '/org/freedesktop/DBus',
+          interface: 'org.freedesktop.DBus',
+          member: 'GetConnectionUnixProcessID',
+          body: [uniqueName],
+        }))
+        if (pidReply.type === MessageType.METHOD_RETURN) {
+          pid = pidReply.body[0]
+        }
+      } catch {
+        // PID not available
+      }
+
+      // Read process command from /proc/{pid}/cmdline
+      let processCmd: string | null = null
+      if (pid) {
+        try {
+          const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf-8')
+          // cmdline is null-separated, convert to space-separated
+          processCmd = cmdline.split('\0').filter(Boolean).join(' ')
+        } catch {
+          // Process may have exited or /proc not available
+        }
+      }
+
+      return { serviceName, uniqueName, pid, processCmd, isActive: true }
     } finally {
       bus.disconnect()
     }
