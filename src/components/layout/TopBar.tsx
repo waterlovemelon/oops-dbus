@@ -5,14 +5,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Menu } from 'lucide-react'
-import { useAppStore } from '../../stores/appStore'
 
 interface TopBarProps {
   onOpenRemoteDrawer?: () => void
 }
 
 export function TopBar({ onOpenRemoteDrawer }: TopBarProps) {
-  const { activeBus, setActiveBus } = useAppStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -44,32 +42,8 @@ export function TopBar({ onOpenRemoteDrawer }: TopBarProps) {
         <span className="text-xs text-[#858585]">D-Bus Workbench</span>
       </div>
 
-      {/* Center: Bus selector */}
-      <div
-        className="flex items-center gap-0.5 rounded bg-[#2d2d2d] p-0.5"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-      >
-        <button
-          onClick={() => setActiveBus('session')}
-          className={`rounded px-2.5 py-0.5 text-[11px] transition-colors ${
-            activeBus === 'session'
-              ? 'bg-[#4ec9b0] text-[#1e1e1e]'
-              : 'text-[#858585] hover:bg-[#383838]'
-          }`}
-        >
-          Session
-        </button>
-        <button
-          onClick={() => setActiveBus('system')}
-          className={`rounded px-2.5 py-0.5 text-[11px] transition-colors ${
-            activeBus === 'system'
-              ? 'bg-[#4ec9b0] text-[#1e1e1e]'
-              : 'text-[#858585] hover:bg-[#383838]'
-          }`}
-        >
-          System
-        </button>
-      </div>
+      {/* Center: empty spacer for layout balance */}
+      <div />
 
       {/* Right: Menu + Window controls */}
       <div

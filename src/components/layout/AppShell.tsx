@@ -32,7 +32,7 @@ export function AppShell() {
       <div className="flex flex-1 overflow-hidden">
         <PanelGroup direction="horizontal">
           {/* Sidebar */}
-          <Panel defaultSize={25} minSize={15} maxSize={40}>
+          <Panel defaultSize={40} minSize={20} maxSize={55}>
             <Sidebar />
           </Panel>
 
@@ -40,7 +40,7 @@ export function AppShell() {
           <PanelResizeHandle className="w-1 bg-border hover:bg-primary/50 transition-colors" />
 
           {/* Main Content Area */}
-          <Panel defaultSize={75} minSize={30}>
+          <Panel defaultSize={60} minSize={30}>
             {selectedMethod ? (
               <MethodPane
                 member={selectedMethod}

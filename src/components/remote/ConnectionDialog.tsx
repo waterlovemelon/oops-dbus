@@ -17,7 +17,6 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
   const [authType, setAuthType] = useState<'key' | 'password'>('key')
   const [keyPath, setKeyPath] = useState('')
   const [password, setPassword] = useState('')
-  const [busType, setBusType] = useState<'session' | 'system'>('session')
   const [dbusSocketPath, setDbusSocketPath] = useState('')
 
   useEffect(() => {
@@ -30,7 +29,6 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
         setAuthType(editingConnection.authType)
         setKeyPath(editingConnection.keyPath || '')
         setPassword(editingConnection.password || '')
-        setBusType(editingConnection.busType)
         setDbusSocketPath(editingConnection.dbusSocketPath || '')
       } else {
         setName('')
@@ -40,7 +38,6 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
         setAuthType('key')
         setKeyPath('')
         setPassword('')
-        setBusType('session')
         setDbusSocketPath('')
       }
     }
@@ -57,7 +54,6 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
       authType,
       keyPath: authType === 'key' ? keyPath : undefined,
       password: authType === 'password' ? password : undefined,
-      busType,
       dbusSocketPath: dbusSocketPath || undefined,
     }
     onSave(conn)
@@ -178,18 +174,6 @@ export function ConnectionDialog({ open, onClose, onSave, editingConnection }: C
               />
             </div>
           )}
-
-          <div className="flex flex-col gap-1">
-            <label className="text-[11px] uppercase tracking-wider text-[#858585]">D-Bus 类型</label>
-            <select
-              value={busType}
-              onChange={(e) => setBusType(e.target.value as 'session' | 'system')}
-              className="cursor-pointer rounded border border-[#3e3e3e] bg-[#1e1e1e] px-2.5 py-2 font-mono text-xs text-[#cccccc] outline-none focus:border-[#00d4ff]"
-            >
-              <option value="session">Session</option>
-              <option value="system">System</option>
-            </select>
-          </div>
 
           <div className="flex flex-col gap-1">
             <label className="text-[11px] uppercase tracking-wider text-[#858585]">D-Bus Socket 路径 (可选)</label>

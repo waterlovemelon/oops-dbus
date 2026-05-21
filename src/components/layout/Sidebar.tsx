@@ -16,17 +16,19 @@ import { useQuery } from '@tanstack/react-query'
 
 let statusListenerInitialized = false
 
-interface SourceState {
-  services: string[]
+interface RemoteSourceState {
+  sessionServices: string[]
+  systemServices: string[]
   expandedService: string | null
+  expandedBusType: BusType | null
   members: DbusMemberInfo[]
-  isLoadingServices: boolean
+  isLoadingSession: boolean
+  isLoadingSystem: boolean
   isLoadingMembers: boolean
 }
 
 export function Sidebar() {
   const {
-    activeBus,
     selectedServiceName,
     setSelectedService,
     selectedMemberId,
@@ -37,7 +39,8 @@ export function Sidebar() {
 
   const [filterText, setFilterText] = useState('')
   const [selectedSource, setSelectedSource] = useState<string>('local')
-  const [remoteStates, setRemoteStates] = useState<Record<string, SourceState>>({})
+  const [busFilter, setBusFilter] = useState<'all' | 'session' | 'system'>('all')
+  const [remoteStates, setRemoteStates] = useState<Record<string, RemoteSourceState>>({})
 
   // Load connections and initialize status listener on mount (only once)
   useEffect(() => {
@@ -48,64 +51,75 @@ export function Sidebar() {
     }
   }, [])
 
-  // Local services
-  const { data: localServices = [], isLoading: isLoadingLocalServices } = useQuery({
-    queryKey: ['services', activeBus],
-    queryFn: () => ipcClient.listServices(activeBus),
+  // Local services - fetch both session and system
+  const { data: localSessionServices = [], isLoading: isLoadingLocalSession } = useQuery({
+    queryKey: ['services', 'session'],
+    queryFn: () => ipcClient.listServices('session'),
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+  })
+  const { data: localSystemServices = [], isLoading: isLoadingLocalSystem } = useQuery({
+    queryKey: ['services', 'system'],
+    queryFn: () => ipcClient.listServices('system'),
     staleTime: 30000,
     refetchOnWindowFocus: false,
   })
 
   const [localExpandedService, setLocalExpandedService] = useState<string | null>(null)
+  const [localExpandedBusType, setLocalExpandedBusType] = useState<BusType | null>(null)
   const { data: localMembers = [], isLoading: isLoadingLocalMembers } = useQuery({
-    queryKey: ['introspection', localExpandedService, activeBus],
-    queryFn: () => localExpandedService ? ipcClient.introspectServiceMembers(localExpandedService, activeBus) : Promise.resolve([]),
-    enabled: !!localExpandedService,
+    queryKey: ['introspection', localExpandedService, localExpandedBusType],
+    queryFn: () => localExpandedService && localExpandedBusType ? ipcClient.introspectServiceMembers(localExpandedService, localExpandedBusType) : Promise.resolve([]),
+    enabled: !!localExpandedService && !!localExpandedBusType,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   })
 
-  // Fetch remote services when connections become connected
-  const fetchRemoteServices = useCallback(async (connId: string, busType: BusType) => {
+  // Fetch remote services (both session and system) when connections become connected
+  const fetchRemoteServices = useCallback(async (connId: string) => {
     setRemoteStates((prev) => ({
       ...prev,
       [connId]: {
         ...prev[connId],
-        services: prev[connId]?.services || [],
+        sessionServices: prev[connId]?.sessionServices || [],
+        systemServices: prev[connId]?.systemServices || [],
         expandedService: prev[connId]?.expandedService || null,
+        expandedBusType: prev[connId]?.expandedBusType || null,
         members: prev[connId]?.members || [],
-        isLoadingServices: true,
+        isLoadingSession: true,
+        isLoadingSystem: true,
         isLoadingMembers: false,
       },
     }))
 
-    try {
-      const services = await ipcClient.listServices(busType, connId)
-      setRemoteStates((prev) => ({
-        ...prev,
-        [connId]: {
-          ...prev[connId],
-          services,
-          expandedService: prev[connId]?.expandedService || null,
-          members: prev[connId]?.members || [],
-          isLoadingServices: false,
-          isLoadingMembers: false,
-        },
-      }))
-    } catch (err) {
-      console.error(`Failed to fetch remote services for ${connId}:`, err)
-      setRemoteStates((prev) => ({
-        ...prev,
-        [connId]: {
-          ...prev[connId],
-          services: [],
-          expandedService: null,
-          members: [],
-          isLoadingServices: false,
-          isLoadingMembers: false,
-        },
-      }))
+    const fetchBus = async (busType: BusType) => {
+      try {
+        return await ipcClient.listServices(busType, connId)
+      } catch (err) {
+        console.error(`Failed to fetch remote ${busType} services for ${connId}:`, err)
+        return []
+      }
     }
+
+    const [sessionServices, systemServices] = await Promise.all([
+      fetchBus('session'),
+      fetchBus('system'),
+    ])
+
+    setRemoteStates((prev) => ({
+      ...prev,
+      [connId]: {
+        ...prev[connId],
+        sessionServices,
+        systemServices,
+        expandedService: prev[connId]?.expandedService || null,
+        expandedBusType: prev[connId]?.expandedBusType || null,
+        members: prev[connId]?.members || [],
+        isLoadingSession: false,
+        isLoadingSystem: false,
+        isLoadingMembers: false,
+      },
+    }))
   }, [])
 
   // Track which connections we've already fetched
@@ -118,7 +132,9 @@ export function Sidebar() {
       if (state && state.status === 'connected') {
         if (!fetchedRef.current.has(conn.id)) {
           fetchedRef.current.add(conn.id)
-          fetchRemoteServices(conn.id, conn.busType)
+          fetchRemoteServices(conn.id)
+          // Auto-switch to the newly connected remote source
+          setSelectedSource(conn.id)
         }
       } else if (state?.status !== 'connected' && fetchedRef.current.has(conn.id)) {
         fetchedRef.current.delete(conn.id)
@@ -127,6 +143,8 @@ export function Sidebar() {
           delete next[conn.id]
           return next
         })
+        // Switch back to local if the active source disconnected
+        setSelectedSource((prev) => (prev === conn.id ? 'local' : prev))
       }
     }
   }, [connections, connectionStates, fetchRemoteServices])
@@ -139,11 +157,13 @@ export function Sidebar() {
   }
 
   // Handle toggle service (local)
-  const handleToggleLocalService = (serviceName: string) => {
-    if (localExpandedService === serviceName) {
+  const handleToggleLocalService = (serviceName: string, busType: BusType) => {
+    if (localExpandedService === serviceName && localExpandedBusType === busType) {
       setLocalExpandedService(null)
+      setLocalExpandedBusType(null)
     } else {
       setLocalExpandedService(serviceName)
+      setLocalExpandedBusType(busType)
       setSelectedService(serviceName, serviceName)
     }
   }
@@ -151,15 +171,15 @@ export function Sidebar() {
   // Handle toggle service (remote)
   const handleToggleRemoteService = (connId: string, serviceName: string, busType: BusType) => {
     const current = remoteStates[connId]
-    if (current?.expandedService === serviceName) {
+    if (current?.expandedService === serviceName && current?.expandedBusType === busType) {
       setRemoteStates((prev) => ({
         ...prev,
-        [connId]: { ...prev[connId], expandedService: null, members: [] },
+        [connId]: { ...prev[connId], expandedService: null, expandedBusType: null, members: [] },
       }))
     } else {
       setRemoteStates((prev) => ({
         ...prev,
-        [connId]: { ...prev[connId], expandedService: serviceName, isLoadingMembers: true },
+        [connId]: { ...prev[connId], expandedService: serviceName, expandedBusType: busType, isLoadingMembers: true },
       }))
       // Fetch members
       ipcClient.introspectServiceMembers(serviceName, busType, connId).then((members) => {
@@ -286,12 +306,7 @@ export function Sidebar() {
   const connState = activeConn ? connectionStates[activeConn.id] : null
   const isConnected = isLocal || connState?.status === 'connected'
 
-  // Current source info for the dropdown detail line
-  const sourceInfoText = isLocal
-    ? `${activeBus === 'session' ? 'Session' : 'System'} Bus`
-    : activeConn
-      ? `${activeConn.user}@${activeConn.host}:${activeConn.port}`
-      : ''
+  // Current source status for the indicator dot
   const sourceStatus: 'green' | 'gray' | 'red' | 'yellow' = isLocal
     ? 'green'
     : connState?.status === 'connected'
@@ -302,20 +317,18 @@ export function Sidebar() {
           ? 'red'
           : 'gray'
 
-  // Current source's service list + expanded state
-  const currentServices = isLocal ? localServices : (remoteStates[activeConn?.id ?? '']?.services ?? [])
-  const currentExpanded = isLocal ? localExpandedService : (remoteStates[activeConn?.id ?? '']?.expandedService ?? null)
-  const currentMembers = isLocal ? localMembers : (remoteStates[activeConn?.id ?? '']?.members ?? [])
-  const currentIsLoadingServices = isLocal ? isLoadingLocalServices : (remoteStates[activeConn?.id ?? '']?.isLoadingServices ?? true)
-  const currentIsLoadingMembers = isLocal ? isLoadingLocalMembers : (remoteStates[activeConn?.id ?? '']?.isLoadingMembers ?? false)
-
-  const handleToggleCurrentService = (serviceName: string) => {
+  // Current source's service list + expanded state (for footer count)
+  const remoteState = activeConn ? remoteStates[activeConn.id] : null
+  const currentServices = (() => {
     if (isLocal) {
-      handleToggleLocalService(serviceName)
-    } else if (activeConn) {
-      handleToggleRemoteService(activeConn.id, serviceName, activeConn.busType)
+      const s = busFilter !== 'system' ? localSessionServices : []
+      const sys = busFilter !== 'session' ? localSystemServices : []
+      return [...s, ...sys]
     }
-  }
+    const s = busFilter !== 'system' ? (remoteState?.sessionServices ?? []) : []
+    const sys = busFilter !== 'session' ? (remoteState?.systemServices ?? []) : []
+    return [...s, ...sys]
+  })()
 
   return (
     <div className="flex h-full flex-col border-r border-[#3e3e3e] bg-[#1e1e1e]">
@@ -333,7 +346,7 @@ export function Sidebar() {
         >
           <optgroup label="本地">
             <option value="local">
-              {activeBus === 'session' ? 'Session' : 'System'} Bus
+              本地 D-Bus
             </option>
           </optgroup>
           {allConnections.length > 0 && (
@@ -363,12 +376,30 @@ export function Sidebar() {
                     : 'bg-[#555]'
             }`}
           />
-          <span>{sourceInfoText}</span>
+          {!isLocal && activeConn && (
+            <span>{activeConn.user}@{activeConn.host}:{activeConn.port}</span>
+          )}
           {!isLocal && connState?.status === 'error' && connState.error && (
             <span className="ml-auto text-[10px] text-[#f44747]" title={connState.error}>
               Error
             </span>
           )}
+        </div>
+        {/* Bus filter tabs */}
+        <div className="mt-1.5 flex gap-0.5 rounded bg-[#1e1e1e] p-0.5">
+          {([['全部', 'all'], ['Session', 'session'], ['System', 'system']] as const).map(([label, value]) => (
+            <button
+              key={value}
+              onClick={() => setBusFilter(value)}
+              className={`flex-1 rounded px-1.5 py-0.5 text-[10px] transition-colors ${
+                busFilter === value
+                  ? 'bg-[#4ec9b0] text-[#1e1e1e] font-medium'
+                  : 'text-[#858585] hover:bg-[#2d2d2d]'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -389,21 +420,54 @@ export function Sidebar() {
       {/* Service List */}
       <div className="flex-1 overflow-y-auto p-1">
         {isConnected ? (
-          renderServiceGroup(
-            isLocal
-              ? `本地 (${activeBus === 'session' ? 'Session' : 'System'})`
-              : activeConn?.name ?? '',
-            currentServices,
-            currentExpanded,
-            currentMembers,
-            currentIsLoadingServices,
-            currentIsLoadingMembers,
-            handleToggleCurrentService,
-            isLocal ? (
-              <span className="h-2 w-2 rounded-full bg-[#4ec9b0]" />
-            ) : (
-              <Wifi className="h-3 w-3 text-[#4ec9b0]" />
-            ),
+          isLocal ? (
+            // Local: show groups based on busFilter
+            <>
+              {(busFilter === 'all' || busFilter === 'session') && renderServiceGroup(
+                '本地 Session',
+                localSessionServices,
+                localExpandedBusType === 'session' ? localExpandedService : null,
+                localExpandedBusType === 'session' ? localMembers : [],
+                isLoadingLocalSession,
+                localExpandedBusType === 'session' ? isLoadingLocalMembers : false,
+                (serviceName) => handleToggleLocalService(serviceName, 'session'),
+                <span className="h-2 w-2 rounded-full bg-[#4ec9b0]" />,
+              )}
+              {(busFilter === 'all' || busFilter === 'system') && renderServiceGroup(
+                '本地 System',
+                localSystemServices,
+                localExpandedBusType === 'system' ? localExpandedService : null,
+                localExpandedBusType === 'system' ? localMembers : [],
+                isLoadingLocalSystem,
+                localExpandedBusType === 'system' ? isLoadingLocalMembers : false,
+                (serviceName) => handleToggleLocalService(serviceName, 'system'),
+                <span className="h-2 w-2 rounded-full bg-[#c586c0]" />,
+              )}
+            </>
+          ) : (
+            // Remote: show groups based on busFilter
+            <>
+              {(busFilter === 'all' || busFilter === 'session') && renderServiceGroup(
+                `${activeConn?.name ?? ''} - Session`,
+                remoteState?.sessionServices ?? [],
+                remoteState?.expandedBusType === 'session' ? remoteState?.expandedService ?? null : null,
+                remoteState?.expandedBusType === 'session' ? remoteState?.members ?? [] : [],
+                remoteState?.isLoadingSession ?? true,
+                remoteState?.expandedBusType === 'session' ? (remoteState?.isLoadingMembers ?? false) : false,
+                (serviceName) => activeConn && handleToggleRemoteService(activeConn.id, serviceName, 'session'),
+                <Wifi className="h-3 w-3 text-[#4ec9b0]" />,
+              )}
+              {(busFilter === 'all' || busFilter === 'system') && renderServiceGroup(
+                `${activeConn?.name ?? ''} - System`,
+                remoteState?.systemServices ?? [],
+                remoteState?.expandedBusType === 'system' ? remoteState?.expandedService ?? null : null,
+                remoteState?.expandedBusType === 'system' ? remoteState?.members ?? [] : [],
+                remoteState?.isLoadingSystem ?? true,
+                remoteState?.expandedBusType === 'system' ? (remoteState?.isLoadingMembers ?? false) : false,
+                (serviceName) => activeConn && handleToggleRemoteService(activeConn.id, serviceName, 'system'),
+                <Wifi className="h-3 w-3 text-[#c586c0]" />,
+              )}
+            </>
           )
         ) : (
           <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
@@ -427,7 +491,7 @@ export function Sidebar() {
       <div className="border-t border-[#3e3e3e] px-2 py-1 text-[11px] text-[#858585]">
         {isConnected ? (
           <>
-            {filterServices(currentServices).length} / {currentServices.length} 服务
+            {currentServices.length} 服务
             {isLocal && connectedRemoteConnections.length > 0 &&
               ` · ${connectedRemoteConnections.length} 个远程连接`}
           </>

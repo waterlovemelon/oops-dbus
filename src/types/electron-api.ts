@@ -13,7 +13,6 @@ export interface RemoteConnection {
   authType: 'key' | 'password'
   keyPath?: string
   password?: string
-  busType: BusType
   dbusSocketPath?: string
 }
 
