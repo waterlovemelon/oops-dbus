@@ -1,6 +1,5 @@
-import { ArrowLeft, Bell, BellOff } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { MonitoringCommands } from '../common/MonitoringCommands'
-import { useSignalMonitor } from '../../hooks/useSignalMonitor'
 import type { BusType, DbusMemberInfo } from '../../types/electron-api'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
@@ -23,31 +22,6 @@ const SIGNAL_DESCRIPTIONS: Record<string, string> = {
 }
 
 export function SignalPane({ member, busType, onBack }: SignalPaneProps) {
-  const { subscribe, unsubscribe, isSubscribed } = useSignalMonitor()
-
-  const subscribed = isSubscribed({
-    serviceName: member.serviceName,
-    path: member.path,
-    interfaceName: member.interfaceName,
-    signalName: member.name,
-    busType,
-  })
-
-  const handleToggle = async () => {
-    const params = {
-      serviceName: member.serviceName,
-      path: member.path,
-      interfaceName: member.interfaceName,
-      signalName: member.name,
-      busType,
-    }
-    if (subscribed) {
-      await unsubscribe(params)
-    } else {
-      await subscribe(params)
-    }
-  }
-
   const desc = SIGNAL_DESCRIPTIONS[member.name] || 'D-Bus signal emitted by the service.'
 
   const monitorCmds = [
@@ -85,37 +59,6 @@ export function SignalPane({ member, busType, onBack }: SignalPaneProps) {
               <InfoRow label="Interface" value={member.interfaceName} mono />
               <InfoRow label="Object Path" value={member.path} mono />
               <InfoRow label="Description" value={desc} />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Subscription */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Subscription</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <Button
-                variant={subscribed ? 'destructive' : 'default'}
-                size="sm"
-                onClick={handleToggle}
-              >
-                {subscribed ? (
-                  <>
-                    <BellOff className="mr-1.5 h-3.5 w-3.5" />
-                    Unsubscribe
-                  </>
-                ) : (
-                  <>
-                    <Bell className="mr-1.5 h-3.5 w-3.5" />
-                    Subscribe
-                  </>
-                )}
-              </Button>
-              <span className={`text-sm ${subscribed ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`}>
-                {subscribed ? 'Listening for signals...' : 'Click to start receiving this signal'}
-              </span>
             </div>
           </CardContent>
         </Card>
