@@ -49,6 +49,7 @@ export class SignalMonitor extends EventEmitter {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'AddMatch',
+        signature: 's',
         body: [rule],
       })
 
@@ -117,6 +118,7 @@ export class SignalMonitor extends EventEmitter {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'RemoveMatch',
+        signature: 's',
         body: [subscription.rule],
       })
 
@@ -143,6 +145,7 @@ export class SignalMonitor extends EventEmitter {
           path: '/org/freedesktop/DBus',
           interface: 'org.freedesktop.DBus',
           member: 'RemoveMatch',
+          signature: 's',
           body: [subscription.rule],
         })
 

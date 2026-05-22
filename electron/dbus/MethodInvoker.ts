@@ -37,6 +37,7 @@ export class MethodInvoker {
       // Convert arguments to D-Bus types
       // For now, we'll pass them as-is and let dbus-next handle conversion
       // In a production implementation, we'd need proper type conversion based on signature
+      method.signature = args.map((a) => this.inferSignature(a)).join('')
       method.body = args
 
       // Send method call and await response
@@ -123,6 +124,22 @@ export class MethodInvoker {
     }
 
     return value
+  }
+
+  /**
+   * Infer D-Bus signature from a JavaScript value
+   */
+  private inferSignature(value: any): string {
+    if (value === null || value === undefined) return 'v'
+    if (typeof value === 'string') return 's'
+    if (typeof value === 'number') return Number.isInteger(value) ? 'i' : 'd'
+    if (typeof value === 'boolean') return 'b'
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 'av'
+      return 'a' + this.inferSignature(value[0])
+    }
+    if (typeof value === 'object') return 'a{sv}'
+    return 'v'
   }
 
   /**

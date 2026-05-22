@@ -62,6 +62,7 @@ export class ServiceExplorer {
           path: '/org/freedesktop/DBus',
           interface: 'org.freedesktop.DBus',
           member: 'GetNameOwner',
+          signature: 's',
           body: [serviceName],
         }))
         if (nameOwnerReply.type === MessageType.METHOD_RETURN) {
@@ -84,6 +85,7 @@ export class ServiceExplorer {
           path: '/org/freedesktop/DBus',
           interface: 'org.freedesktop.DBus',
           member: 'GetConnectionUnixProcessID',
+          signature: 's',
           body: [uniqueName],
         }))
         if (pidReply.type === MessageType.METHOD_RETURN) {
