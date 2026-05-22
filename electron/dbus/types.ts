@@ -50,5 +50,6 @@ export interface ServiceInfo {
   uniqueName: string | null
   pid: number | null
   processCmd: string | null
+  startTime: string | null
   isActive: boolean
 }

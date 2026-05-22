@@ -65,7 +65,7 @@ export const ipcClient = {
       return await window.electronAPI.getServiceInfo(serviceName, busType, connectionId)
     } catch (error) {
       console.error('Failed to get service info:', error)
-      return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
+      return { serviceName, uniqueName: null, pid: null, processCmd: null, startTime: null, isActive: false }
     }
   },
 

@@ -94,6 +94,7 @@ export function ServiceOverviewPane({
                 <InfoItem label="Unique Name" value={uniqueName} mono />
                 <InfoItem label="Owning Process" value={isActive ? `${processName} (PID ${pid ?? '?'})` : 'Not running'} />
                 <InfoItem label="Bus Type" value={busType} />
+                <InfoItem label="Start Time" value={info?.startTime ? new Date(info.startTime).toLocaleString() : '-'} />
               </div>
             )}
 

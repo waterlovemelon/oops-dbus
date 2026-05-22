@@ -16,6 +16,17 @@ import { useQuery } from '@tanstack/react-query'
 
 let statusListenerInitialized = false
 
+function formatRelativeTime(isoString: string): string {
+  const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000)
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+}
+
 interface RemoteSourceState {
   sessionServices: string[]
   systemServices: string[]
@@ -327,6 +338,7 @@ export function Sidebar() {
                             <span className="truncate text-[11px] text-text-2">
                               {info.uniqueName}
                               {info.processCmd && ` · ${info.processCmd}`}
+                              {info.startTime && ` · ${formatRelativeTime(info.startTime)}`}
                             </span>
                           ) : (
                             <span className="text-[11px] text-text-3">inactive</span>

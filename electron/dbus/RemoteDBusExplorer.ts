@@ -31,7 +31,7 @@ export class RemoteDBusExplorer {
     }
 
     if (!uniqueName) {
-      return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
+      return { serviceName, uniqueName: null, pid: null, processCmd: null, startTime: null, isActive: false }
     }
 
     // Get PID
@@ -45,8 +45,9 @@ export class RemoteDBusExplorer {
       // PID not available
     }
 
-    // Read process command
+    // Read process command and start time
     let processCmd: string | null = null
+    let startTime: string | null = null
     if (pid) {
       try {
         const cmd = `cat /proc/${pid}/cmdline | tr '\\0' ' '`
@@ -54,9 +55,16 @@ export class RemoteDBusExplorer {
       } catch {
         // Process may have exited
       }
+      try {
+        const cmd = `stat -c %Y /proc/${pid}`
+        const epochSec = (await this.tunnelManager.runCommand(connectionId, cmd)).trim()
+        startTime = new Date(parseInt(epochSec, 10) * 1000).toISOString()
+      } catch {
+        // Process may have exited
+      }
     }
 
-    return { serviceName, uniqueName, pid, processCmd, isActive: true }
+    return { serviceName, uniqueName, pid, processCmd, startTime, isActive: true }
   }
 
   async introspectServiceMembers(connectionId: string, serviceName: string, busType: 'session' | 'system'): Promise<DbusMemberInfo[]> {

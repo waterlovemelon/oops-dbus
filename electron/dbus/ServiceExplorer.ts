@@ -1,5 +1,5 @@
 import { Message, MessageType, sessionBus, systemBus } from 'dbus-next'
-import { readFileSync } from 'fs'
+import { readFileSync, statSync } from 'fs'
 import type { BusType, DbusMemberInfo, DbusInterfaceInfo, DbusArgumentInfo, ServiceInfo } from './types'
 
 /**
@@ -122,6 +122,7 @@ export class ServiceExplorer {
               uniqueName: null,
               pid: null,
               processCmd: null,
+              startTime: null,
               isActive: false,
               isActivatable,
             } as ServiceInfo & { isActivatable?: boolean }
@@ -146,10 +147,17 @@ export class ServiceExplorer {
           }
 
           let processCmd: string | null = null
+          let startTime: string | null = null
           if (pid) {
             try {
               const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf-8')
               processCmd = cmdline.split('\0').filter(Boolean).join(' ')
+            } catch {
+              // Process may have exited
+            }
+            try {
+              const stat = statSync(`/proc/${pid}`)
+              startTime = stat.mtime.toISOString()
             } catch {
               // Process may have exited
             }
@@ -160,6 +168,7 @@ export class ServiceExplorer {
             uniqueName: info.uniqueName,
             pid,
             processCmd,
+            startTime,
             isActive: true,
           } as ServiceInfo
         }))
@@ -202,7 +211,7 @@ export class ServiceExplorer {
       }
 
       if (!uniqueName) {
-        return { serviceName, uniqueName: null, pid: null, processCmd: null, isActive: false }
+        return { serviceName, uniqueName: null, pid: null, processCmd: null, startTime: null, isActive: false }
       }
 
       // Get PID via GetConnectionUnixProcessID
@@ -226,17 +235,23 @@ export class ServiceExplorer {
 
       // Read process command from /proc/{pid}/cmdline
       let processCmd: string | null = null
+      let startTime: string | null = null
       if (pid) {
         try {
           const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf-8')
-          // cmdline is null-separated, convert to space-separated
           processCmd = cmdline.split('\0').filter(Boolean).join(' ')
         } catch {
           // Process may have exited or /proc not available
         }
+        try {
+          const stat = statSync(`/proc/${pid}`)
+          startTime = stat.mtime.toISOString()
+        } catch {
+          // Process may have exited
+        }
       }
 
-      return { serviceName, uniqueName, pid, processCmd, isActive: true }
+      return { serviceName, uniqueName, pid, processCmd, startTime, isActive: true }
     } finally {
       bus.disconnect()
     }
