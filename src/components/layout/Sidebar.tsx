@@ -303,7 +303,7 @@ export function Sidebar() {
                 <div key={service}>
                   <button
                     onClick={() => onToggleService(service)}
-                    className={`flex w-full items-start gap-1 rounded px-2 py-1 text-left transition-colors ${
+                    className={`flex w-full items-start gap-1 rounded px-2 py-1 text-left transition-colors border-b border-border ${
                       isSelected && !isExpanded
                         ? 'bg-selected-bg text-selected-text'
                         : isExpanded
@@ -343,13 +343,15 @@ export function Sidebar() {
                           加载成员中...
                         </div>
                       ) : treeNodes.length > 0 ? (
-                        treeNodes.map((node) => (
+                        treeNodes.map((node, index) => (
                           <TreeNode
                             key={node.id}
                             node={node}
                             selectedId={selectedMemberId}
                             onSelect={handleSelectMember}
                             level={2}
+                            guideLines={[]}
+                            isLast={index === treeNodes.length - 1}
                           />
                         ))
                       ) : (

@@ -1,6 +1,6 @@
 /**
  * TreeNode Component
- * Recursive tree node with expand/collapse functionality
+ * Recursive tree node with expand/collapse and indent guide lines
  */
 
 import { useState } from 'react'
@@ -13,9 +13,13 @@ interface TreeNodeProps {
   selectedId: string | null
   onSelect: (node: TreeNodeType) => void
   level: number
+  /** For each ancestor level, true = that ancestor is the last child (line stops), false = line continues */
+  guideLines?: boolean[]
+  /** Whether this node is the last child among its siblings */
+  isLast?: boolean
 }
 
-export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
+export function TreeNode({ node, selectedId, onSelect, level, guideLines = [], isLast = true }: TreeNodeProps) {
   const [expanded, setExpanded] = useState(false)
 
   const hasChildren = node.children && node.children.length > 0
@@ -51,15 +55,47 @@ export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
     }
   }
 
+  // Current node's own guide state: last child → "L" connector, otherwise → line continues
+  const currentGuideIsLast = isLast
+  // Full guide state array for children: ancestors + current node
+  const childGuideLines = [...guideLines, currentGuideIsLast]
+
   return (
     <div>
       <div
         className={`flex cursor-pointer items-center gap-1 rounded px-1 py-0.5 hover:bg-muted ${
           isSelected ? 'bg-primary/20 text-primary' : ''
         }`}
-        style={{ paddingLeft: `${level * 8 + 4}px` }}
         onClick={handleClick}
       >
+        {/* Guide line columns */}
+        {guideLines.length > 0 && (
+          <div className="flex shrink-0 self-stretch">
+            {guideLines.map((ancestorIsLast, i) => (
+              <div
+                key={i}
+                className="relative w-5 shrink-0"
+              >
+                {!ancestorIsLast && (
+                  <div className="absolute left-[9px] top-0 bottom-0 w-px bg-border" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {/* Current node connector */}
+        {level > 0 && (
+          <div className="relative w-5 shrink-0 self-stretch">
+            {currentGuideIsLast ? (
+              <>
+                <div className="absolute left-[9px] top-0 h-1/2 w-px bg-border" />
+                <div className="absolute left-[9px] top-1/2 w-[9px] h-px bg-border" />
+              </>
+            ) : (
+              <div className="absolute left-[9px] top-0 bottom-0 w-px bg-border" />
+            )}
+          </div>
+        )}
         {hasChildren ? (
           expanded ? (
             <ChevronDown className="h-3 w-3 shrink-0" />
@@ -76,13 +112,15 @@ export function TreeNode({ node, selectedId, onSelect, level }: TreeNodeProps) {
       </div>
       {expanded && hasChildren && (
         <div>
-          {node.children!.map((child) => (
+          {node.children!.map((child, index) => (
             <TreeNode
               key={child.id}
               node={child}
               selectedId={selectedId}
               onSelect={onSelect}
               level={level + 1}
+              guideLines={childGuideLines}
+              isLast={index === node.children!.length - 1}
             />
           ))}
         </div>
