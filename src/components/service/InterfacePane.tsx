@@ -29,8 +29,8 @@ export function InterfacePane({
   const properties = members.filter((m) => m.type === 'property')
 
   const monitorCmds = [
-    { tool: 'dbus-monitor' as const, command: `dbus-monitor "destination='${serviceName}',path='${path}',interface='${interfaceName}'"` },
-    { tool: 'busctl' as const, command: `busctl monitor ${serviceName} ${path} ${interfaceName}` },
+    { tool: 'dbus-monitor' as const, command: `dbus-monitor --${busType} "destination='${serviceName}',path='${path}',interface='${interfaceName}'"` },
+    { tool: 'busctl' as const, command: `busctl --${busType} monitor ${serviceName} ${path} ${interfaceName}` },
     { tool: 'gdbus' as const, command: `gdbus monitor --${busType} --dest ${serviceName} --object-path ${path}` },
   ]
 

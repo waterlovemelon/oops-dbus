@@ -28,7 +28,7 @@ export function SignalPane({ member, busType, onBack }: SignalPaneProps) {
 
   const monitorCmds = [
     { tool: 'dbus-monitor' as const, command: `dbus-monitor --${busType} "type='signal',interface='${member.interfaceName}',member='${member.name}'"` },
-    { tool: 'busctl' as const, command: `busctl monitor ${member.serviceName} ${member.path} ${member.interfaceName}.${member.name}` },
+    { tool: 'busctl' as const, command: `busctl --${busType} monitor ${member.serviceName} ${member.path} ${member.interfaceName}.${member.name}` },
     { tool: 'gdbus' as const, command: `gdbus monitor --${busType} --dest ${member.serviceName}` },
   ]
 

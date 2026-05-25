@@ -46,15 +46,15 @@ export function ServiceOverviewPane({
 
   // Build monitoring commands
   const serviceMonitorCmds = [
-    { tool: 'dbus-monitor' as const, command: `dbus-monitor "destination='${serviceName}',type='method_call'"` },
-    { tool: 'busctl' as const, command: `busctl monitor ${serviceName}` },
+    { tool: 'dbus-monitor' as const, command: `dbus-monitor --${busType} "destination='${serviceName}',type='method_call'"` },
+    { tool: 'busctl' as const, command: `busctl --${busType} monitor ${serviceName}` },
     { tool: 'gdbus' as const, command: `gdbus monitor --${busType} --dest ${serviceName}` },
   ]
 
   const processMonitorCmds = isActive && uniqueName !== '-'
     ? [
-        { tool: 'dbus-monitor' as const, command: `dbus-monitor "sender='${uniqueName}' OR destination='${uniqueName}'"` },
-        { tool: 'busctl' as const, command: `busctl monitor --unique-name=${uniqueName}` },
+        { tool: 'dbus-monitor' as const, command: `dbus-monitor --${busType} "sender='${uniqueName}' OR destination='${uniqueName}'"` },
+        { tool: 'busctl' as const, command: `busctl --${busType} monitor --unique-name=${uniqueName}` },
       ]
     : []
 

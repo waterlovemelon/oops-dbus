@@ -16,8 +16,8 @@ interface PathPaneProps {
 export function PathPane({ path, serviceName, busType, onBack }: PathPaneProps) {
   const { t } = useTranslation()
   const monitorCmds = [
-    { tool: 'dbus-monitor' as const, command: `dbus-monitor "destination='${serviceName}',path='${path}'"` },
-    { tool: 'busctl' as const, command: `busctl monitor ${serviceName} ${path}` },
+    { tool: 'dbus-monitor' as const, command: `dbus-monitor --${busType} "destination='${serviceName}',path='${path}'"` },
+    { tool: 'busctl' as const, command: `busctl --${busType} monitor ${serviceName} ${path}` },
     { tool: 'gdbus' as const, command: `gdbus monitor --${busType} --dest ${serviceName} --object-path ${path}` },
   ]
 
