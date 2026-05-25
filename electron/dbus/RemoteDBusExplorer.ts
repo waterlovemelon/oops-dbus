@@ -169,7 +169,7 @@ export class RemoteDBusExplorer {
         }
       }
 
-      const propertyMatches = interfaceMatch.match(/<property\s+name="([^"]+)"\s+type="([^"]+)"[^/]*\/>/g)
+      const propertyMatches = interfaceMatch.match(/<property\s+name="([^"]+)"\s+type="([^"]+)"[^>]*(?:\/>|>)/g)
       if (propertyMatches) {
         for (const propertyMatch of propertyMatches) {
           const propNameMatch = propertyMatch.match(/name="([^"]+)"/)

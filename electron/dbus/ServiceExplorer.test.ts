@@ -153,3 +153,54 @@ test('introspectPath keeps empty names for unnamed args', async () => {
     { name: '', type: 's', direction: 'in' },
   ])
 })
+
+test('introspectPath parses self-closing property tags', async () => {
+  const explorer = new ServiceExplorer() as any
+
+  explorer.getIntrospectionXML = async () => `
+    <node>
+      <interface name="com.example.Interface">
+        <property name="Version" type="s" access="read"/>
+        <property name="Enabled" type="b" access="readwrite"/>
+      </interface>
+    </node>
+  `
+
+  const interfaces = await explorer.introspectPath({}, 'com.example.Service', '/com/example/Object')
+  const properties = interfaces[0]?.properties
+
+  assert.equal(properties?.length, 2)
+  assert.equal(properties?.[0]?.name, 'Version')
+  assert.equal(properties?.[0]?.type, 'property')
+  assert.equal(properties?.[0]?.annotation, 'read')
+  assert.equal(properties?.[0]?.signature, 's')
+  assert.equal(properties?.[1]?.name, 'Enabled')
+  assert.equal(properties?.[1]?.annotation, 'readwrite')
+  assert.equal(properties?.[1]?.signature, 'b')
+})
+
+test('introspectPath parses property tags with annotation children', async () => {
+  const explorer = new ServiceExplorer() as any
+
+  explorer.getIntrospectionXML = async () => `
+    <node>
+      <interface name="com.example.Interface">
+        <property name="State" type="s" access="read">
+          <annotation name="org.freedesktop.DBus.Property.EmitsChangedSignal" value="true"/>
+        </property>
+        <property name="Name" type="s" access="read"/>
+      </interface>
+    </node>
+  `
+
+  const interfaces = await explorer.introspectPath({}, 'com.example.Service', '/com/example/Object')
+  const properties = interfaces[0]?.properties
+
+  assert.equal(properties?.length, 2)
+  assert.equal(properties?.[0]?.name, 'State')
+  assert.equal(properties?.[0]?.type, 'property')
+  assert.equal(properties?.[0]?.annotation, 'read')
+  assert.equal(properties?.[0]?.signature, 's')
+  assert.equal(properties?.[1]?.name, 'Name')
+  assert.equal(properties?.[1]?.annotation, 'read')
+})

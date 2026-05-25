@@ -431,7 +431,7 @@ export class ServiceExplorer {
         }
 
         // Parse properties
-        const propertyMatches = interfaceMatch.match(/<property\s+name="([^"]+)"\s+type="([^"]+)"[^/]*\/>/g)
+        const propertyMatches = interfaceMatch.match(/<property\s+name="([^"]+)"\s+type="([^"]+)"[^>]*(?:\/>|>)/g)
         if (propertyMatches) {
           for (const propertyMatch of propertyMatches) {
             const propertyNameMatch = propertyMatch.match(/name="([^"]+)"/)
