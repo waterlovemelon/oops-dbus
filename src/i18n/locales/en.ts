@@ -36,6 +36,7 @@ export const en = {
   'method.invoking': 'Invoking...',
   'method.reset': 'Reset',
   'method.copyCommand': 'Copy Command',
+  'method.monitorMethod': 'Monitor Method',
 
   // ResultView
   'result.invokingMethod': 'Invoking Method...',
@@ -75,6 +76,7 @@ export const en = {
   'property.valueType': 'Value type:',
   'property.unknownError': 'Unknown error',
   'property.accessNotRecognized': 'Property access mode "{access}" is not recognized.',
+  'property.monitorProperty': 'Monitor Property',
 
   // ServiceOverviewPane
   'service.systemBus': 'System Bus',

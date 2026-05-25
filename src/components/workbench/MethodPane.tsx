@@ -6,6 +6,7 @@ import { ResultView } from './ResultView'
 import { useMethodInvoker } from '../../hooks/useMethodInvoker'
 import { ChevronLeft, Play, RotateCcw, Copy, Check } from 'lucide-react'
 import { useTranslation } from '../../i18n'
+import { MonitoringCommands } from '../common/MonitoringCommands'
 
 interface MethodPaneProps {
   member: DbusMemberInfo
@@ -64,6 +65,10 @@ export function MethodPane({ member, busType, connectionId, onBack }: MethodPane
       `${member.interfaceName}.${member.name}`,
     ]
     return parts.join(' ')
+  }
+
+  const buildMonitorCmd = () => {
+    return `dbus-monitor --${busType} "type='method_call',destination='${member.serviceName}',path='${member.path}',interface='${member.interfaceName}',member='${member.name}'"`
   }
 
   const handleCopyCommand = async () => {
@@ -169,6 +174,13 @@ export function MethodPane({ member, busType, connectionId, onBack }: MethodPane
 
         {/* Results */}
         <ResultView result={result} isInvoking={isInvoking} />
+
+        <div className="mt-6">
+          <MonitoringCommands
+            title={t('method.monitorMethod')}
+            command={buildMonitorCmd()}
+          />
+        </div>
       </div>
     </div>
   )

@@ -36,6 +36,7 @@ export const zh = {
   'method.invoking': '调用中...',
   'method.reset': '重置',
   'method.copyCommand': '复制命令',
+  'method.monitorMethod': '监听方法',
 
   // ResultView
   'result.invokingMethod': '正在调用方法...',
@@ -75,6 +76,7 @@ export const zh = {
   'property.valueType': '值类型：',
   'property.unknownError': '未知错误',
   'property.accessNotRecognized': '属性访问模式 "{access}" 无法识别。',
+  'property.monitorProperty': '监听属性',
 
   // ServiceOverviewPane
   'service.systemBus': '系统总线',

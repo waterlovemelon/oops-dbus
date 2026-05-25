@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { DbusMemberInfo } from '../../types/electron-api'
 import { usePropertyAccessor } from '../../hooks/usePropertyAccessor'
 import { formatDbusTypeLabel } from '../../lib/memberLabel'
+import { MonitoringCommands } from '../common/MonitoringCommands'
 import {
   ChevronLeft,
   Copy,
@@ -95,6 +96,10 @@ export function PropertyPane({ member, busType, connectionId, onBack }: Property
       parts.push(`variant:string:"${setValue}"`)
     }
     return parts.join(' ')
+  }
+
+  const buildMonitorCmd = () => {
+    return `dbus-monitor --${busType} "type='signal',sender='${member.serviceName}',path='${member.path}',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"`
   }
 
   const handleCopyCommand = async (method: 'Get' | 'Set') => {
@@ -351,6 +356,11 @@ export function PropertyPane({ member, busType, connectionId, onBack }: Property
             {t('property.accessNotRecognized', { access })}
           </div>
         )}
+
+        <MonitoringCommands
+          title={t('property.monitorProperty')}
+          command={buildMonitorCmd()}
+        />
       </div>
     </div>
   )
