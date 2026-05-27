@@ -85,6 +85,7 @@ export function AppShell() {
         case 'method':
           return (
             <MethodPane
+              key={selectedNode.id}
               member={member}
               busType={activeBus}
               connectionId={activeConnectionId}
@@ -94,6 +95,7 @@ export function AppShell() {
         case 'signal':
           return (
             <SignalPane
+              key={selectedNode.id}
               member={member}
               busType={activeBus}
               connectionId={activeConnectionId}
@@ -103,6 +105,7 @@ export function AppShell() {
         case 'property':
           return (
             <PropertyPane
+              key={selectedNode.id}
               member={member}
               busType={activeBus}
               connectionId={activeConnectionId}
