@@ -91,9 +91,9 @@ export const ipcClient = {
     }
   },
 
-  getAllServiceInfo: async (busType: BusType): Promise<Record<string, ServiceInfo>> => {
+  getAllServiceInfo: async (busType: BusType, connectionId?: string): Promise<Record<string, ServiceInfo>> => {
     try {
-      return await window.electronAPI.getAllServiceInfo(busType)
+      return await window.electronAPI.getAllServiceInfo(busType, connectionId)
     } catch (error) {
       console.error('Failed to get all service info:', error)
       return {}

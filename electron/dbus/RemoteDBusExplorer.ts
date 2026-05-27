@@ -14,6 +14,18 @@ export class RemoteDBusExplorer {
       .filter(Boolean)
   }
 
+  private parseGdbusUint(output: string): number | null {
+    const match = output.match(/\(\s*(?:uint\d+\s+)?(\d+),?\s*\)/)
+    return match ? parseInt(match[1], 10) : null
+  }
+
+  private isNameHasNoOwnerError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error)
+    return message.includes('org.freedesktop.DBus.Error.NameHasNoOwner')
+      || message.includes('NameHasNoOwner')
+      || message.includes('does not have an owner')
+  }
+
   async listServices(connectionId: string, busType: 'session' | 'system'): Promise<string[]> {
     const busFlag = busType === 'system' ? '--system' : '--session'
     const names = new Set<string>()
@@ -41,6 +53,31 @@ export class RemoteDBusExplorer {
     return Array.from(names).sort()
   }
 
+  async getAllServiceInfo(connectionId: string, busType: 'session' | 'system'): Promise<Map<string, ServiceInfo>> {
+    const result = new Map<string, ServiceInfo>()
+    const services = await this.listServices(connectionId, busType)
+    const concurrency = 8
+
+    for (let i = 0; i < services.length; i += concurrency) {
+      const batch = services.slice(i, i + concurrency)
+      const infos = await Promise.all(batch.map(async (serviceName) => {
+        try {
+          return await this.getServiceInfo(connectionId, serviceName, busType)
+        } catch {
+          return null
+        }
+      }))
+
+      for (const info of infos) {
+        if (info) {
+          result.set(info.serviceName, info)
+        }
+      }
+    }
+
+    return result
+  }
+
   async getServiceInfo(connectionId: string, serviceName: string, busType: 'session' | 'system'): Promise<ServiceInfo> {
     const busFlag = busType === 'system' ? '--system' : '--session'
     let isActivatable = false
@@ -60,8 +97,10 @@ export class RemoteDBusExplorer {
       const output = await this.tunnelManager.runCommand(connectionId, cmd)
       const match = output.match(/\('([^']+)'/)
       if (match) uniqueName = match[1]
-    } catch {
-      // Not active
+    } catch (error) {
+      if (!this.isNameHasNoOwnerError(error)) {
+        throw error
+      }
     }
 
     if (!uniqueName) {
@@ -73,8 +112,7 @@ export class RemoteDBusExplorer {
     try {
       const cmd = `gdbus call ${busFlag} --dest org.freedesktop.DBus --object-path /org/freedesktop/DBus --method org.freedesktop.DBus.GetConnectionUnixProcessID '${uniqueName}'`
       const output = await this.tunnelManager.runCommand(connectionId, cmd)
-      const match = output.match(/\((\d+)\)/)
-      if (match) pid = parseInt(match[1], 10)
+      pid = this.parseGdbusUint(output)
     } catch {
       // PID not available
     }
@@ -108,10 +146,7 @@ export class RemoteDBusExplorer {
   }
 
   async introspectServiceMembers(connectionId: string, serviceName: string, busType: 'session' | 'system'): Promise<DbusMemberInfo[]> {
-    console.log(`[RemoteDBus] introspectServiceMembers: service=${serviceName}, bus=${busType}`)
-    const members = await this.exploreAndCollect(connectionId, serviceName, busType, '/')
-    console.log(`[RemoteDBus] total members found: ${members.length}`)
-    return members
+    return await this.exploreAndCollect(connectionId, serviceName, busType, '/')
   }
 
   private async exploreAndCollect(connectionId: string, serviceName: string, busType: 'session' | 'system', path: string, visited = new Set<string>()): Promise<DbusMemberInfo[]> {
@@ -120,43 +155,32 @@ export class RemoteDBusExplorer {
 
     const busFlag = busType === 'system' ? '--system' : '--session'
     const cmd = `gdbus call ${busFlag} --dest ${serviceName} --object-path ${path} --method org.freedesktop.DBus.Introspectable.Introspect`
-    console.log(`[RemoteDBus] exploring path="${path}"`)
 
     let output: string
     try {
       output = await this.tunnelManager.runCommand(connectionId, cmd)
-    } catch (err) {
-      console.error(`[RemoteDBus] command FAILED for "${path}":`, err)
+    } catch {
       return []
     }
-    console.log(`[RemoteDBus] raw output for "${path}" (${output.length} chars):\n---\n${output}\n---`)
     const xmlMatch = output.match(/\('(<\?xml[\s\S]*?<\/node>)',?\)/)
       || output.match(/\('(<\!DOCTYPE[\s\S]*?<\/node>)',?\)/)
       || output.match(/\('(<node[\s\S]*?<\/node>)',?\)/)
     if (!xmlMatch) {
-      console.log(`[RemoteDBus] no XML match for "${path}"`)
       return []
     }
 
     const xml = xmlMatch[1].replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\"/g, '"')
-    console.log(`[RemoteDBus] XML for "${path}":\n${xml.substring(0, 300)}`)
 
     const members = this.parseIntrospectionXML(xml, serviceName, path)
-    console.log(`[RemoteDBus] "${path}" -> ${members.length} members from interfaces`)
 
     const childMatches = xml.match(/<node\s+name="([^"]+)"\s*\/>/g)
     if (childMatches) {
-      console.log(`[RemoteDBus] "${path}" has ${childMatches.length} child nodes`)
       for (const childMatch of childMatches) {
         const nameMatch = childMatch.match(/name="([^"]+)"/)
         if (!nameMatch) continue
         const childPath = path === '/' ? `/${nameMatch[1]}` : `${path}/${nameMatch[1]}`
-        try {
-          const childMembers = await this.exploreAndCollect(connectionId, serviceName, busType, childPath, visited)
-          members.push(...childMembers)
-        } catch (err) {
-          console.error(`[RemoteDBus] child "${childPath}" FAILED:`, err)
-        }
+        const childMembers = await this.exploreAndCollect(connectionId, serviceName, busType, childPath, visited)
+        members.push(...childMembers)
       }
     }
 

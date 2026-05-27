@@ -202,24 +202,9 @@ export function Sidebar() {
       },
     }))
 
-    // Fetch service info in the background
-    const fetchServiceInfo = async (services: string[], busType: BusType) => {
-      const entries = await Promise.all(
-        services.map(async (name) => {
-          try {
-            const info = await ipcClient.getServiceInfo(name, busType, connId)
-            return [name, info] as const
-          } catch {
-            return [name, { serviceName: name, uniqueName: null, pid: null, processCmd: null, startTime: null, isActive: false }] as const
-          }
-        }),
-      )
-      return Object.fromEntries(entries) as Record<string, ServiceInfo>
-    }
-
     const [sessionInfoMap, systemInfoMap] = await Promise.all([
-      fetchServiceInfo(sessionServices, 'session'),
-      fetchServiceInfo(systemServices, 'system'),
+      ipcClient.getAllServiceInfo('session', connId),
+      ipcClient.getAllServiceInfo('system', connId),
     ])
 
     setRemoteStates((prev) => ({
@@ -290,6 +275,32 @@ export function Sidebar() {
   const handleToggleRemoteService = async (connId: string, serviceName: string, busType: BusType) => {
     try {
       await ipcClient.activateService(serviceName, busType, connId)
+      const info = await ipcClient.getServiceInfo(serviceName, busType, connId)
+      setRemoteStates((prev) => {
+        const current = prev[connId] ?? {
+          sessionServices: [],
+          systemServices: [],
+          sessionServiceInfoMap: {},
+          systemServiceInfoMap: {},
+          expandedService: null,
+          expandedBusType: null,
+          members: [],
+          isLoadingSession: false,
+          isLoadingSystem: false,
+          isLoadingMembers: false,
+        }
+        const mapKey = busType === 'session' ? 'sessionServiceInfoMap' : 'systemServiceInfoMap'
+        return {
+          ...prev,
+          [connId]: {
+            ...current,
+            [mapKey]: {
+              ...(current?.[mapKey] ?? {}),
+              [serviceName]: info,
+            },
+          },
+        }
+      })
     } catch {
       // Ignore activation failures and continue opening the service.
     }
