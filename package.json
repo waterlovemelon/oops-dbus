@@ -15,7 +15,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\"",
     "package:linux": "npm run build:vite && electron-builder --linux",
     "build:linux-deb": "npm run build:vite && electron-builder --linux deb",
-    "build:linux-appimage": "npm run build:vite && electron-builder --linux AppImage"
+    "build:linux-appimage": "npm run build:vite && electron-builder --linux AppImage",
+    "build:uos-deb": "bash scripts/build-uos-deb.sh"
   },
   "dependencies": {
     "dbus-next": "^0.9.0",
