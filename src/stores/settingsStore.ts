@@ -49,7 +49,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setSearchFilter: (filter) => set({ searchFilter: filter }),
     }),
     {
-      name: 'dbus-workbench-settings',
+      name: 'oops-dbus',
     }
   )
 )

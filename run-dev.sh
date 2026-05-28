@@ -1,9 +1,9 @@
 #!/bin/bash
-# Run D-Bus Workbench Electron in development mode
+# Run Oops DBus in development mode
 
 cd "$(dirname "$0")"
 
-echo "Starting D-Bus Workbench Electron..."
+echo "Starting Oops DBus..."
 echo "Press Ctrl+C to stop"
 echo ""
 

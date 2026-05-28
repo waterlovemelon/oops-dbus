@@ -3,7 +3,7 @@ import path from 'path'
 import { app } from 'electron'
 import type { RemoteConnection } from './types'
 
-const CONFIG_DIR = path.join(app.getPath('home'), '.config', 'dbus-workbench-electron')
+const CONFIG_DIR = path.join(app.getPath('home'), '.config', 'oops-dbus')
 const CONNECTIONS_FILE = path.join(CONFIG_DIR, 'connections.json')
 
 export class ConnectionStore {

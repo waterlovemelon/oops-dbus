@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# D-Bus Workbench 打包脚本
+# Oops DBus 打包脚本
 # 用法:
 #   ./build.sh              # 默认打包为 AppImage
 #   ./build.sh appimage     # 打包为 AppImage
@@ -17,8 +17,8 @@ export NVM_DIR="${NVM_DIR:-$HOME/.config/nvm}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-APP_NAME="D-Bus Workbench"
-APP_NAME_LOWER="dbus-workbench"
+APP_NAME="Oops DBus"
+APP_NAME_LOWER="oops-dbus"
 VERSION=$(node -p "require('./package.json').version")
 BUILD_DIR="$SCRIPT_DIR/build"
 DIST_DIR="$SCRIPT_DIR/dist"
@@ -78,24 +78,10 @@ build_appimage() {
     fi
 }
 
-# ---------- deb 打包 ----------
+# ---------- deb 打包（UOS 规范） ----------
 build_deb() {
-    info "正在打包 deb..."
-    npx electron-builder --linux deb
-    ok "deb 打包完成"
-
-    local deb
-    deb=$(find "$SCRIPT_DIR/dist" -name "*.deb" -type f | head -1)
-    if [[ -n "$deb" ]]; then
-        local target="$SCRIPT_DIR/${APP_NAME_LOWER}-${VERSION}-amd64.deb"
-        mv "$deb" "$target"
-        ok "输出: $target"
-        echo ""
-        info "安装: sudo dpkg -i $target"
-        info "卸载: sudo dpkg -r ${APP_NAME_LOWER}-electron"
-    else
-        warn "未找到生成的 deb，请检查 dist/ 目录"
-    fi
+    info "正在按 UOS 规范打包 deb..."
+    bash "$SCRIPT_DIR/scripts/build-uos-deb.sh"
 }
 
 # ---------- 便携版打包（带无后缀可执行文件） ----------
@@ -129,24 +115,24 @@ build_portable() {
     cat > "$portable_dir/${APP_NAME_LOWER}" << 'LAUNCHER'
 #!/usr/bin/env bash
 #
-# D-Bus Workbench 启动器
+# Oops DBus 启动器
 #
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$SCRIPT_DIR/dbus-workbench-electron" "$@"
+exec "$SCRIPT_DIR/oops-dbus" "$@"
 LAUNCHER
     chmod +x "$portable_dir/${APP_NAME_LOWER}"
 
     # 创建桌面快捷方式文件
     cat > "$portable_dir/${APP_NAME_LOWER}.desktop" << EOF
 [Desktop Entry]
-Name=D-Bus Workbench
+Name=Oops DBus
 Comment=Modern D-Bus introspection tool
 Exec=$portable_dir/${APP_NAME_LOWER} %U
 Icon=$portable_dir/resources/assets/icons/png/256x256.png
 Type=Application
 Categories=Development;
 Terminal=false
-StartupWMClass=dbus-workbench-electron
+StartupWMClass=oops-dbus
 EOF
     chmod +x "$portable_dir/${APP_NAME_LOWER}.desktop"
 
@@ -154,7 +140,7 @@ EOF
     echo ""
     info "目录: $portable_dir/"
     info "启动: $portable_dir/${APP_NAME_LOWER}"
-    info "      或直接运行: $portable_dir/dbus-workbench-electron"
+    info "      或直接运行: $portable_dir/oops-dbus"
     echo ""
     info "可将整个目录拷贝到任意位置使用，无需安装"
 }

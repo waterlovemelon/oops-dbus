@@ -1,4 +1,4 @@
-# D-Bus Workbench (Electron)
+# Oops DBus
 
 Modern D-Bus introspection, method invocation, and signal monitoring tool built with Electron and React.
 
@@ -69,7 +69,7 @@ npm run build:linux-appimage
 ## Project Structure
 
 ```
-dbus-workbench-electron/
+oops-dbus/
 ├── electron/              # Electron main process
 │   ├── main.ts           # Main entry point
 │   ├── preload.ts        # Preload script

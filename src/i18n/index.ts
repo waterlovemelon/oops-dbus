@@ -37,7 +37,7 @@ export const useI18n = create<I18nStore>()(
       },
     }),
     {
-      name: 'dbus-workbench-i18n',
+      name: 'oops-dbus-i18n',
     }
   )
 )

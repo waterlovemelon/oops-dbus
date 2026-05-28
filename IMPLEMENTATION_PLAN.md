@@ -1,8 +1,8 @@
-# D-Bus Workbench Electron - 后续实施计划
+# Oops DBus - 后续实施计划
 
 **日期**: 2026-04-17
 **状态**: Phase 1 完成，Phase 2-6 待实施
-**项目位置**: `dbus-workbench-electron/`
+**项目位置**: `oops-dbus-electron/`
 
 ---
 
@@ -456,8 +456,8 @@ npm run dev
 **文件**: `electron-builder.yml`
 
 ```yaml
-appId: com.deepin.dbus-workbench
-productName: D-Bus Workbench
+appId: cn.org.oops.dbus
+productName: Oops DBus
 directories:
   output: dist
 
@@ -481,20 +481,20 @@ deb:
 ```
 
 #### 10.2 桌面入口文件
-**文件**: `build/dbus-workbench-electron.desktop`
+**文件**: `build/oops-dbus.desktop`
 
 ```desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=D-Bus Workbench
-Name[zh_CN]=D-Bus 工作台
+Name=Oops DBus
+Name[zh_CN]=Oops DBus
 GenericName=D-Bus Introspection Tool
 GenericName[zh_CN]=D-Bus 内省工具
 Comment=Modern D-Bus introspection, method invocation, and signal monitoring tool
 Comment[zh_CN]=现代化的 D-Bus 内省、方法调用和信号监控工具
-Exec=dbus-workbench-electron %F
-Icon=dbus-workbench-electron
+Exec=oops-dbus %F
+Icon=oops-dbus
 Terminal=false
 Categories=Development;Debugger;
 ```
@@ -508,7 +508,7 @@ npm run build:linux-deb
 npm run build:linux-appimage
 
 # 测试安装
-sudo dpkg -i dist/dbus-workbench-electron_1.0.0_amd64.deb
+sudo dpkg -i dist/cn.org.oops.dbus_1.0.0_amd64.deb
 sudo apt-get install -f
 ```
 
@@ -557,7 +557,7 @@ sudo apt-get install -f
 
 ```bash
 # 进入项目目录
-cd dbus-workbench-electron
+cd oops-dbus
 
 # 开发模式
 npm run dev

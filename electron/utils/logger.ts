@@ -4,13 +4,13 @@ import os from 'os'
 
 /**
  * Logger utility for file logging
- * Logs to ~/.config/dbus-workbench-electron/logs/main.log
+ * Logs to ~/.config/oops-dbus/logs/main.log
  */
 class Logger {
   private logFile: string
 
   constructor() {
-    const logDir = path.join(os.homedir(), '.config', 'dbus-workbench-electron', 'logs')
+    const logDir = path.join(os.homedir(), '.config', 'oops-dbus', 'logs')
 
     // Create log directory if it doesn't exist
     if (!fs.existsSync(logDir)) {

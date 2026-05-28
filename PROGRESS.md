@@ -1,4 +1,4 @@
-# D-Bus Workbench Electron - 开发进度
+# Oops DBus - 开发进度
 
 **最后更新**: 2026-04-17 19:06  
 **当前阶段**: Phase 2-4 已完成，Phase 5-6 待实施
@@ -186,7 +186,7 @@ interface EventListProps {
 
 ```bash
 # 进入项目目录
-cd dbus-workbench-electron
+cd oops-dbus
 
 # 开发模式
 npm run dev
